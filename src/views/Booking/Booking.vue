@@ -613,12 +613,122 @@ const resetBookings = () => {
   );
 };
 
+// const _fetchBooking = async () => {
+//   resetBookings();
+
+//   if (selectedField.value) {
+//     const datas = await Promise.all(
+//       weekDays.value.map((day) => bookingService.getBookings(day.date))
+//     );
+
+//     for (const data of datas) {
+//       data.forEach((booking) => {
+//         if (booking.field_id === selectedField.value) {
+//           const startIndex = timeSlots.findIndex(
+//             (time) => time === booking.start_time.slice(0, 5)
+//           );
+//           const endIndex = timeSlots.findIndex(
+//             (time) => time === booking.end_time.slice(0, 5)
+//           );
+
+//           if (startIndex !== -1 && endIndex !== -1) {
+//             for (let i = startIndex; i < endIndex; i++) {
+//               if (!bookings.value[selectedField.value][day.date]) {
+//                 bookings.value[selectedField.value][day.date] = Array(
+//                   timeSlots.length
+//                 ).fill(null);
+//               }
+//               bookings.value[selectedField.value][day.date][i] = booking;
+//             }
+//           }
+//         }
+//       });
+//     }
+
+//     // for (const day of weekDays.value) {
+//     //   const { data } = await bookingService.getBookings(day.date);
+//     //   data.forEach((booking) => {
+//     //     if (booking.field_id === selectedField.value) {
+//     //       const startIndex = timeSlots.findIndex(
+//     //         (time) => time === booking.start_time.slice(0, 5)
+//     //       );
+//     //       const endIndex = timeSlots.findIndex(
+//     //         (time) => time === booking.end_time.slice(0, 5)
+//     //       );
+
+//     //       if (startIndex !== -1 && endIndex !== -1) {
+//     //         for (let i = startIndex; i < endIndex; i++) {
+//     //           if (!bookings.value[selectedField.value][day.date]) {
+//     //             bookings.value[selectedField.value][day.date] = Array(
+//     //               timeSlots.length
+//     //             ).fill(null);
+//     //           }
+//     //           bookings.value[selectedField.value][day.date][i] = booking;
+//     //         }
+//     //       }
+//     //     }
+//     //   });
+//     // }
+//   } else {
+//     const { data } = await bookingService.getBookings(
+//       getLocalDate(selectedDate.value)
+//     );
+//     data.forEach((booking) => {
+//       const fieldId = booking.field_id;
+//       const startIndex = timeSlots.findIndex(
+//         (time) => time === booking.start_time.slice(0, 5)
+//       );
+//       const endIndex = timeSlots.findIndex(
+//         (time) => time === booking.end_time.slice(0, 5)
+//       );
+
+//       if (startIndex !== -1 && endIndex !== -1) {
+//         for (let i = startIndex; i < endIndex; i++) {
+//           if (!bookings.value[fieldId][getLocalDate(selectedDate.value)]) {
+//             bookings.value[fieldId][getLocalDate(selectedDate.value)] = Array(
+//               timeSlots.length
+//             ).fill(null);
+//           }
+//           bookings.value[fieldId][getLocalDate(selectedDate.value)][i] =
+//             booking;
+//         }
+//       }
+//     });
+//   }
+// };
+
 // Fetch bookings
 const fetchBookings = async () => {
   resetBookings();
   if (selectedField.value) {
-    for (const day of weekDays.value) {
-      const { data } = await bookingService.getBookings(day.date);
+    // for (const day of weekDays.value) {
+    //   const { data } = await bookingService.getBookings(day.date);
+    //   data.forEach((booking) => {
+    //     if (booking.field_id === selectedField.value) {
+    //       const startIndex = timeSlots.findIndex(
+    //         (time) => time === booking.start_time.slice(0, 5)
+    //       );
+    //       const endIndex = timeSlots.findIndex(
+    //         (time) => time === booking.end_time.slice(0, 5)
+    //       );
+
+    //       if (startIndex !== -1 && endIndex !== -1) {
+    //         for (let i = startIndex; i < endIndex; i++) {
+    //           if (!bookings.value[selectedField.value][day.date]) {
+    //             bookings.value[selectedField.value][day.date] = Array(
+    //               timeSlots.length
+    //             ).fill(null);
+    //           }
+    //           bookings.value[selectedField.value][day.date][i] = booking;
+    //         }
+    //       }
+    //     }
+    //   });
+    // }
+    const datas = await Promise.all(
+      weekDays.value.map((day) => bookingService.getBookings(day.date))
+    );
+    for (const data of datas) {
       data.forEach((booking) => {
         if (booking.field_id === selectedField.value) {
           const startIndex = timeSlots.findIndex(
@@ -812,8 +922,6 @@ const nextDay = () => {
 };
 
 const previousWeek = () => {
-  
-  
   const date = new Date(selectedDate.value);
   date.setDate(date.getDate() - 7);
   selectedDate.value = date;
