@@ -273,7 +273,18 @@
   <!-- Dialog -->
   <v-dialog v-model="isDialogOpen" max-width="500px" height="800px">
     <v-card height="100%">
-      <v-card-title id="title-model">Book Soccer Field</v-card-title>
+      <v-card-title id="title-model" class="d-flex justify-space-between"
+        >Đặt sân bóng
+        <v-btn
+          size="small"
+          icon
+          @click="isDialogOpen = false"
+          variant="text"
+          class="close-btn"
+        >
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-card-title>
       <v-card-text class="mt-4">
         <v-form @submit.prevent="handleBooking">
           <v-row>
@@ -282,7 +293,7 @@
               <v-date-input
                 class="date-picker"
                 v-model="selectedDateForm"
-                label="Select Date"
+                label="Chọn ngày"
                 prepend-icon="mdi-calendar"
                 clearable
                 variant="outlined"
@@ -296,7 +307,7 @@
                 :items="fields"
                 item-title="name"
                 item-value="id"
-                label="Booking Field"
+                label="Chọn sân"
                 variant="outlined"
                 @update:model-value="calculateEndTime"
               ></v-select>
@@ -307,7 +318,7 @@
               <v-select
                 v-model="bookingDetails.start_time"
                 :items="availableStartTimes"
-                label="Start Time"
+                label="Giờ bắt đầu"
                 @update:model-value="calculateEndTime"
               ></v-select>
             </v-col>
@@ -315,16 +326,25 @@
               <v-select
                 v-model="bookingDetails.end_time"
                 :items="availableEndTimes"
-                label="End Time"
+                label="Giờ kết thúc"
                 @update:model-value="calculateEndTime"
               ></v-select>
+            </v-col>
+          </v-row>
+          <v-row v-if="errorMessage" class="">
+            <v-col cols="12" class="">
+              <v-alert
+                icon="mdi-alert-circle-outline"
+                class="text-red-darken-2 p-1"
+                >{{ errorMessage }}</v-alert
+              >
             </v-col>
           </v-row>
           <v-row>
             <v-col>
               <v-text-field
                 v-model="bookingDetails.cost"
-                label="Cost"
+                label="Tiền phí"
                 variant="outlined"
                 readonly
                 suffix="VND"
@@ -334,7 +354,7 @@
             <v-col>
               <v-text-field
                 v-model="bookingDetails.deposit"
-                label="Deposit"
+                label="Tiền cọc"
                 variant="outlined"
                 readonly
                 suffix="VND"
@@ -348,7 +368,7 @@
               :items="users"
               item-title="phone"
               item-value="id"
-              label="Select or Enter Customer Name"
+              label="Chọn người dùng (hoặc nhập sđt)"
               variant="outlined"
               clearable
               @update:model-value="onUserSelect"
@@ -370,19 +390,19 @@
           <v-row>
             <v-text-field
               v-model="bookingDetails.user.name"
-              label="Enter Customer Name"
+              label="Tên người khách hàng"
               variant="outlined"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-col cols="12">
               <v-radio-group v-model="bookingDetails.paymentMethod" row>
-                <p>Payment Method</p>
-                <v-radio label="Full Payment" value="full"></v-radio>
-                <v-radio label="Partial Deposit" value="partial"></v-radio>
+                <p>Lựa chọn thanh toán</p>
+                <v-radio label="Thanh toán hết" value="full"></v-radio>
+                <v-radio label="Đặt cọc" value="partial"></v-radio>
                 <v-radio
                   v-if="bookingDetails.user.vip === '1'"
-                  label="None payment (just for V.I.P)"
+                  label="Không cần thanh toán (chỉ dành cho khách V.I.P)"
                   value="none"
                 ></v-radio>
               </v-radio-group>
@@ -392,8 +412,8 @@
           <v-row v-if="bookingDetails.paymentMethod !== 'none'">
             <v-col cols="12">
               <v-radio-group v-model="bookingDetails.paymentType" row>
-                <p>Payment Type</p>
-                <v-radio label="Pay Directly" value="direct"></v-radio>
+                <p>Phương thức thanh toán</p>
+                <v-radio label="Tiền mặt" value="direct"></v-radio>
                 <v-radio value="zalopay">
                   <template v-slot:label>
                     <img
@@ -405,7 +425,7 @@
                         filter: contrast(210%) brightness(90%);
                       "
                     />
-                    Pay Online via ZaloPay
+                    Thanh toán với ZaloPay
                   </template>
                 </v-radio>
               </v-radio-group>
@@ -421,31 +441,31 @@
               bookingDetails.paymentMethod === 'full' &&
               bookingDetails.paymentType === 'direct'
             "
-            >Cash payment!</span
+            >Trả tiền mặt</span
           >
           <span
             v-if="
               bookingDetails.paymentMethod === 'full' &&
               bookingDetails.paymentType !== 'direct'
             "
-            >Online payment!</span
+            >Thanh toán online</span
           >
           <span
             v-else-if="
               bookingDetails.paymentMethod === 'partial' &&
               bookingDetails.paymentType === 'direct'
             "
-            >cash deposit</span
+            >Đặt cọc tiền mặt</span
           >
           <span
             v-else-if="
               bookingDetails.paymentMethod === 'partial' &&
               bookingDetails.paymentType !== 'direct'
             "
-            >Online deposit</span
+            >Đặt cọc online</span
           >
           <span v-else-if="bookingDetails.paymentMethod === 'none'"
-            >Booking</span
+            >Đặt sân</span
           >
         </v-btn>
       </v-card-actions>
@@ -474,6 +494,7 @@ const selectedSlot = ref(null);
 const selectedDate = ref(new Date());
 const selectedDateForm = ref(new Date());
 const selectedField = ref(null);
+const errorMessage = ref("");
 
 // Booking details
 const bookingDetails = ref({
@@ -504,11 +525,13 @@ const formatCurrency = (value) => {
     style: "currency",
     currency: "VND",
   });
-  return formatter.format(value);
+  return formatter.format(value).replace("₫", "");
+
 };
 
 // Calculate end time and costs
 const calculateEndTime = (duration) => {
+  errorMessage.value = "";
   const selectedField = fields.value.find(
     (field) => field.id === bookingDetails.value.field
   );
@@ -781,6 +804,7 @@ const fetchBookings = async () => {
 
 // Handle booking modal open
 const handleOpenBooking = (fieldId, index, date) => {
+  errorMessage.value = "";
   fetchCustomers();
   selectedDateForm.value = selectedDate.value;
   selectedSlot.value = { fieldId, index, date };
@@ -862,6 +886,12 @@ const handleBooking = async () => {
           type: "success",
         });
       } catch (error) {
+        errorMessage.value = error.response.data.message;
+        // showNotification({
+        //   title: "Thông báo",
+        //   message: error.response.data.message,
+        //   type: "success",
+        // });
         console.error("Error creating booking:", error);
       }
     }
