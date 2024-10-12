@@ -10,6 +10,9 @@ import FieldDetail from '../views/Fileds/FieldDetail.vue';
 import Calendar from '../components/Calendar.vue';
 import Booking from '../views/Booking/Booking.vue';
 import BookingDetail from '../views/Booking/BookingDetail.vue';
+import Supply from '../views/Supply/Supply.vue';
+import Receipt from '../views/Receipt/Receipt.vue';
+import ReceiptDetail from '../views/Receipt/ReceiptDetail.vue';
 
 const routes = [
     {
@@ -65,6 +68,30 @@ const routes = [
         path: '/booking/:id',
         name: 'BookingDetail',
         component: BookingDetail,
+        meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
+        path: '/supply',
+        name: 'Supply',
+        component: Supply,
+        meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
+        path: '/receipt',
+        name: 'Receipt',
+        component: Receipt,
+        meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
+        path: '/receipt/create',
+        name: 'ReceiptCreate',
+        component: ReceiptDetail,
+        meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
+        path: '/receipt/:id',
+        name: 'ReceiptDetail',
+        component: ReceiptDetail,
         meta: { requiresAuth: true, requiresAdmin: true },
     },
     {

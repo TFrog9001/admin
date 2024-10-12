@@ -24,6 +24,16 @@
           clearable
         ></v-select>
       </v-col>
+      <v-col>
+        <v-select
+          v-model="selectedBookingType"
+          :items="bookingTypes"
+          item-title="title"
+          item-value="value"
+          label="Chọn loại booking"
+          variant="outlined"
+        ></v-select>
+      </v-col>
       <!-- <v-col cols="12" sm="4">
         <v-card class="mb-4 pa-4">
           <v-row>
@@ -495,6 +505,12 @@ const selectedDate = ref(new Date());
 const selectedDateForm = ref(new Date());
 const selectedField = ref(null);
 const errorMessage = ref("");
+const bookingTypes = ref([
+  { title: "All", value: "all" },
+  { title: "Failed Booking", value: "failed" },
+]);
+
+const selectedBookingType = ref("all");
 
 // Booking details
 const bookingDetails = ref({
@@ -526,7 +542,6 @@ const formatCurrency = (value) => {
     currency: "VND",
   });
   return formatter.format(value).replace("₫", "");
-
 };
 
 // Calculate end time and costs
@@ -636,120 +651,17 @@ const resetBookings = () => {
   );
 };
 
-// const _fetchBooking = async () => {
-//   resetBookings();
-
-//   if (selectedField.value) {
-//     const datas = await Promise.all(
-//       weekDays.value.map((day) => bookingService.getBookings(day.date))
-//     );
-
-//     for (const data of datas) {
-//       data.forEach((booking) => {
-//         if (booking.field_id === selectedField.value) {
-//           const startIndex = timeSlots.findIndex(
-//             (time) => time === booking.start_time.slice(0, 5)
-//           );
-//           const endIndex = timeSlots.findIndex(
-//             (time) => time === booking.end_time.slice(0, 5)
-//           );
-
-//           if (startIndex !== -1 && endIndex !== -1) {
-//             for (let i = startIndex; i < endIndex; i++) {
-//               if (!bookings.value[selectedField.value][day.date]) {
-//                 bookings.value[selectedField.value][day.date] = Array(
-//                   timeSlots.length
-//                 ).fill(null);
-//               }
-//               bookings.value[selectedField.value][day.date][i] = booking;
-//             }
-//           }
-//         }
-//       });
-//     }
-
-//     // for (const day of weekDays.value) {
-//     //   const { data } = await bookingService.getBookings(day.date);
-//     //   data.forEach((booking) => {
-//     //     if (booking.field_id === selectedField.value) {
-//     //       const startIndex = timeSlots.findIndex(
-//     //         (time) => time === booking.start_time.slice(0, 5)
-//     //       );
-//     //       const endIndex = timeSlots.findIndex(
-//     //         (time) => time === booking.end_time.slice(0, 5)
-//     //       );
-
-//     //       if (startIndex !== -1 && endIndex !== -1) {
-//     //         for (let i = startIndex; i < endIndex; i++) {
-//     //           if (!bookings.value[selectedField.value][day.date]) {
-//     //             bookings.value[selectedField.value][day.date] = Array(
-//     //               timeSlots.length
-//     //             ).fill(null);
-//     //           }
-//     //           bookings.value[selectedField.value][day.date][i] = booking;
-//     //         }
-//     //       }
-//     //     }
-//     //   });
-//     // }
-//   } else {
-//     const { data } = await bookingService.getBookings(
-//       getLocalDate(selectedDate.value)
-//     );
-//     data.forEach((booking) => {
-//       const fieldId = booking.field_id;
-//       const startIndex = timeSlots.findIndex(
-//         (time) => time === booking.start_time.slice(0, 5)
-//       );
-//       const endIndex = timeSlots.findIndex(
-//         (time) => time === booking.end_time.slice(0, 5)
-//       );
-
-//       if (startIndex !== -1 && endIndex !== -1) {
-//         for (let i = startIndex; i < endIndex; i++) {
-//           if (!bookings.value[fieldId][getLocalDate(selectedDate.value)]) {
-//             bookings.value[fieldId][getLocalDate(selectedDate.value)] = Array(
-//               timeSlots.length
-//             ).fill(null);
-//           }
-//           bookings.value[fieldId][getLocalDate(selectedDate.value)][i] =
-//             booking;
-//         }
-//       }
-//     });
-//   }
-// };
-
 // Fetch bookings
 const fetchBookings = async () => {
   resetBookings();
+  const isFailedBooking = selectedBookingType.value === "failed";
   if (selectedField.value) {
-    // for (const day of weekDays.value) {
-    //   const { data } = await bookingService.getBookings(day.date);
-    //   data.forEach((booking) => {
-    //     if (booking.field_id === selectedField.value) {
-    //       const startIndex = timeSlots.findIndex(
-    //         (time) => time === booking.start_time.slice(0, 5)
-    //       );
-    //       const endIndex = timeSlots.findIndex(
-    //         (time) => time === booking.end_time.slice(0, 5)
-    //       );
-
-    //       if (startIndex !== -1 && endIndex !== -1) {
-    //         for (let i = startIndex; i < endIndex; i++) {
-    //           if (!bookings.value[selectedField.value][day.date]) {
-    //             bookings.value[selectedField.value][day.date] = Array(
-    //               timeSlots.length
-    //             ).fill(null);
-    //           }
-    //           bookings.value[selectedField.value][day.date][i] = booking;
-    //         }
-    //       }
-    //     }
-    //   });
-    // }
     const datas = await Promise.all(
-      weekDays.value.map((day) => bookingService.getBookings(day.date))
+      weekDays.value.map((day) =>
+        isFailedBooking
+          ? bookingService.getFailBookings(day.date) 
+          : bookingService.getBookings(day.date) 
+      )
     );
     for (const data of datas) {
       data.forEach((booking) => {
@@ -775,9 +687,9 @@ const fetchBookings = async () => {
       });
     }
   } else {
-    const { data } = await bookingService.getBookings(
-      getLocalDate(selectedDate.value)
-    );
+    const { data } = await (isFailedBooking
+      ? bookingService.getFailBookings(getLocalDate(selectedDate.value))
+      : bookingService.getBookings(getLocalDate(selectedDate.value)));
     data.forEach((booking) => {
       const fieldId = booking.field_id;
       const startIndex = timeSlots.findIndex(

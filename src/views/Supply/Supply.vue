@@ -1,0 +1,3 @@
+<template>
+    Drinks here
+</template>

@@ -12,6 +12,17 @@ const bookingService = {
             throw error;
         }
     },
+    async getFailBookings(booking_date) {
+        try {  
+            const response = await api.get('/bookings/fail', {
+                params: { booking_date } 
+            });
+            return response;
+        } catch (error) {
+            console.error('Có lỗi xảy ra khi lấy danh sách bookings:', error);
+            throw error;
+        }
+    },
     async getBookingById(id) {
         try {  
             const response = await api.get(`/bookings/${id}`);
