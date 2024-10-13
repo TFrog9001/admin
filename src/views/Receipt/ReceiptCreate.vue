@@ -1,8 +1,6 @@
 <template>
   <div class="container-fluid mt-5">
-    <h2 class="text-3xl mb-5">
-      {{ isEditMode ? "Cập nhật phiếu nhập" : "Tạo phiếu nhập mới" }}
-    </h2>
+    <h2 class="text-3xl mb-5">Tạo phiếu nhập mới</h2>
 
     <div class="row">
       <!-- Cột bên trái: Thông tin người lập phiếu và nhà cung cấp -->
@@ -11,7 +9,7 @@
           <label for="userId" class="form-label">Người lập phiếu</label>
           <input
             type="text"
-            :value="'ID: ' + newReceipt.user_id + ' - ' + newReceipt.user_name"
+            :value="'ID: ' + newReceipt.user_id + ' - ' + authStore.user.name"
             id="userId"
             class="form-control"
             readonly
@@ -205,16 +203,16 @@
       prepend-icon="mdi-content-save-edit-outline"
       color="green-darken-3"
       class="btn btn-success w-10 mt-3"
-      @click="isEditMode ? updateReceipt() : createReceipt()"
+      @click="createReceipt"
     >
-      {{ isEditMode ? "Cập nhật phiếu nhập" : "Tạo phiếu nhập" }}
+      Tạo phiếu nhập
     </v-btn>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
-import { useRouter, useRoute } from "vue-router";
+import { ref } from "vue";
+import { useRouter } from "vue-router";
 import { useAuthStore } from "../../stores/auth";
 import importReceiptService from "../../services/importReceiptService";
 import supplyService from "../../services/supplyService";
@@ -224,19 +222,14 @@ import { showNotification } from "../../utils/notification";
 
 const authStore = useAuthStore();
 const router = useRouter();
-const route = useRoute();
-
-const isEditMode = (route.params.id && route.params.id !== "create") ? true : false;
 
 const newReceipt = ref({
   user_id: authStore.user.id,
-  user_name: authStore.user.name,
   receiper_name: "",
-  items: "",
+  items: ""
 });
 
 const newItem = ref({
-  item_id: "",
   item_type: "supply",
   item_name: "",
   serial_number: "",
@@ -268,7 +261,7 @@ const calculateTotalAmount = () => {
   }, 0);
 };
 
-const addItem = async () => {
+const addItem = async  () => {
   // Reset lỗi
   cleanErrors();
 
@@ -276,40 +269,34 @@ const addItem = async () => {
     errors.value.serial_number = "Serial number là bắt buộc.";
   }
 
-  if (
-    newItem.value.price === null ||
-    newItem.value.price <= 0 ||
-    newItem.value.price === ""
-  ) {
+  if (newItem.value.price === null || newItem.value.price <= 0 || newItem.value.price === "" ) {
     errors.value.price = "Giá nhập phải lớn hơn 0.";
   }
 
   try {
     let response;
-    if (newItem.value.item_type === "supply") {
+    if (newItem.value.item_type === 'supply') {
       response = await supplyService.getSupplyBySN(newItem.value.serial_number);
-    } else if (newItem.value.item_type === "equipment") {
-      response = await equipmentService.getEquipmentBySN(
-        newItem.value.serial_number
-      );
+    } else if (newItem.value.item_type === 'equipment') {
+      response = await equipmentService.getEquipmentBySN(newItem.value.serial_number);
     }
 
     // Nếu serial_number tồn tại, gán tên sản phẩm từ API
     if (response && response.data) {
       newItem.value.item_name = response.data[0].name;
-    }
-  } catch (error) {}
+    } 
+  } catch (error) {
+  } 
+
 
   if (!newItem.value.item_name) {
     errors.value.item_name = "Tên sản phẩm là bắt buộc.";
   }
-  if (
-    !newItem.value.item_name ||
-    !newItem.value.serial_number ||
-    errors.value.price
-  ) {
+  if (!newItem.value.item_name || !newItem.value.serial_number || errors.value.price) {
     return;
   }
+
+
 
   // Tìm kiếm sản phẩm có serial_number trùng
   const existingItem = addedItems.value.find(
@@ -347,95 +334,29 @@ const createReceipt = async () => {
     errors.value.addedItems = "Phải có ít nhất một sản phẩm được nhập.";
     return;
   }
-
+  
   newReceipt.value.items = addedItems.value;
 
   console.log(newReceipt.value);
-
+  
   const response = await importReceiptService.createReceipt(newReceipt.value);
   if (response.status == 201) {
     showNotification({
-      title: "Thông báo",
-      message: "Tạo phiếu nhập thành công",
-      type: "success",
-    });
-    router.push(`/receipt/${response.data.receipt_id}`);
-  } else {
-    showNotification({
-      title: "Thông báo",
-      message: "Có lỗi khi tạo phiếu nhập hàng",
-      type: "error",
-    });
-  }
-
-  cleanErrors();
-};
-
-const updateReceipt = async () => {
-  if (!newReceipt.value.receiper_name) {
-    errors.value.receiper_name = "Tên nhà cung cấp là bắt buộc.";
-    return;
-  }
-  if (addedItems.value.length === 0) {
-    errors.value.addedItems = "Phải có ít nhất một sản phẩm được nhập.";
-    return;
-  }
-
-  newReceipt.value.items = addedItems.value;
-
-  try {
-    const response = await importReceiptService.updateReceipt(
-      route.params.id,
-      newReceipt.value
-    );
-    if (response.status == 200) {
-      showNotification({
         title: "Thông báo",
-        message: "Cập nhật phiếu nhập thành công",
+        message: "Tạo phiếu nhập thành công",
         type: "success",
       });
-      router.push(`/receipt/${route.params.id}`);
-    } else {
-      throw new Error("Có lỗi khi cập nhật phiếu nhập hàng");
-    }
-  } catch (error) {
+      router.push(`/receipt/${response.data.receipt_id}`);
+  } else {
     showNotification({
-      title: "Thông báo",
-      message: error.message || "Có lỗi khi cập nhật phiếu nhập hàng",
-      type: "error",
-    });
+        title: "Thông báo",
+        message: "Có lỗi khi tạo phiếu nhập hàng",
+        type: "error",
+      });
   }
 
   cleanErrors();
 };
-
-onMounted(async () => {
-  console.log(isEditMode);
-  
-  if (isEditMode) {
-    try {
-      const response = await importReceiptService.getReceiptById(
-        route.params.id
-      );
-      newReceipt.value = {
-        user_id: response.data.user.id,
-        user_name: response.data.user.name,
-        receiper_name: response.data.receiper_name,
-        items: response.data.items,
-      };
-      console.log(newReceipt.value);
-      
-      addedItems.value = response.data.items;
-      totalAmount.value = response.data.total_amount;
-    } catch (error) {
-      showNotification({
-        title: "Thông báo",
-        message: "Có lỗi khi tải dữ liệu phiếu nhập",
-        type: "error",
-      });
-    }
-  }
-});
 </script>
 
 <style scoped>

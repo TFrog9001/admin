@@ -13,6 +13,7 @@ import BookingDetail from '../views/Booking/BookingDetail.vue';
 import Supply from '../views/Supply/Supply.vue';
 import Receipt from '../views/Receipt/Receipt.vue';
 import ReceiptDetail from '../views/Receipt/ReceiptDetail.vue';
+import ReceiptCreate from '../views/Receipt/ReceiptCreate.vue';
 
 const routes = [
     {

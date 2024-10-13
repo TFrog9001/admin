@@ -1,10 +1,10 @@
 import api from "../axios/api";
-
+//importReceiptService.getReceiptById
 const importReceiptService = {
     async getReceipts() {
-        try {  
+        try {
             // console.log(params.current_page, params.pagesize);
-            
+
             const response = await api.get('/import-receipts')
             return response;
         } catch (error) {
@@ -13,7 +13,7 @@ const importReceiptService = {
         }
     },
     async getReceiptById(id) {
-        try {        
+        try {
             const response = await api.get(`/import-receipts/${id}`)
             return response;
         } catch (error) {
@@ -21,8 +21,28 @@ const importReceiptService = {
             throw error;
         }
     },
+    async createReceipt(data) {
+        try {
+            const response = await api.post(`/import-receipts`, data);
+            return response;
+        } catch (error) {
+            console.error('Có lỗi xảy ra khi lấy phiếu nhập', error);
+            throw error;
+        }
+    },
+
+    async updateReceipt(id, data) {
+
+        try {
+            const response = await api.post(`/import-receipts/${id}`, data);
+            return response;
+        } catch (error) {
+            console.error('Có lỗi xảy ra khi lấy phiếu nhập', error);
+            throw error;
+        }
+    },
     async deleteReceipt(id) {
-        try {        
+        try {
             const response = await api.delete(`/import-receipts/${id}`)
             return response;
         } catch (error) {
