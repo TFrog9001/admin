@@ -1,11 +1,20 @@
 import api from "../axios/api";
 
 const bookingService = {
-    async getBookings(booking_date) {
+    async getBookings(booking_date, status) {
         try {  
             const response = await api.get('/bookings', {
-                params: { booking_date } 
+                params: { booking_date , status: status ?? 'nofail'} 
             });
+            return response;
+        } catch (error) {
+            console.error('Có lỗi xảy ra khi lấy danh sách bookings:', error);
+            throw error;
+        }
+    },
+    async getAllBookings() {
+        try {  
+            const response = await api.get('/bookings');
             return response;
         } catch (error) {
             console.error('Có lỗi xảy ra khi lấy danh sách bookings:', error);
@@ -15,7 +24,7 @@ const bookingService = {
     async getFailBookings(booking_date) {
         try {  
             const response = await api.get('/bookings/fail', {
-                params: { booking_date } 
+                params: { booking_date} 
             });
             return response;
         } catch (error) {

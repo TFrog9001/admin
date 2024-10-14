@@ -1,26 +1,38 @@
 <template>
-  <v-data-table
-    :headers="headers"
-    :items="fields"
-    item-value="id"
-    class="elevation-1"
-    :items-per-page="5"
-  >
-    <template v-slot:top>
-      <v-toolbar flat>
-        <v-toolbar-title>Danh sách sân bóng</v-toolbar-title>
-        <v-divider class="mx-4" inset vertical></v-divider>
-        <v-spacer></v-spacer>
-        <v-btn color="primary" @click="addField">Thêm sân</v-btn>
-      </v-toolbar>
-    </template>
-
-    <template v-slot:[`item.actions`]="{ item }">
-      <!-- <v-icon color="info" @click="viewField(item)">mdi-eye</v-icon> -->
-      <v-icon color="success" @click="viewField(item)">mdi-pencil</v-icon>
-      <v-icon color="error" @click="deleteField(item)">mdi-delete</v-icon>
-    </template>
-  </v-data-table>
+  <div class="container-fluid">
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="text-3xl">Danh sách sân bóng</h2>
+      <div class="text-end">
+        <v-btn @click="addField" color="primary"> + Tạo sân mới </v-btn>
+      </div>
+    </div>
+    <div class="bg-white p-2">
+      <vue3-datatable
+        id="receipt_table"
+        :rows="fields"
+        :columns="cols"
+        :loading="loading"
+        :sortable="true"
+        sortColumn="created_at"
+        sortDirection="desc"
+        skin="bh-table-striped bh-table-hover bh-table-bordered"
+      >
+        <template #id="data">
+          <strong>#{{ data.value.id }}</strong>
+        </template>
+        <template #actions="data">
+          <div class="flex gap-4">
+            <v-icon color="success" @click="viewField(data.value)">
+              mdi-pencil
+            </v-icon>
+            <v-icon color="error" @click="deleteField(data.value)">
+              mdi-delete
+            </v-icon>
+          </div>
+        </template>
+      </vue3-datatable>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -28,21 +40,31 @@ import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import fieldService from "../../services/fieldService";
 import { showNotification } from "../../utils/notification";
-
-const headers = ref([
-  { key: "name", title: "Tên sân" },
-  { key: "type", title: "Loại sân" },
-  { key: "status", title: "Trạng thái" },
-  { key: "actions", title: "Hành động", sortable: false },
-]);
+import Vue3Datatable from "@bhplugin/vue3-datatable";
+import "@bhplugin/vue3-datatable/dist/style.css";
 
 const fields = ref([]);
 
 const router = useRouter();
 
+const cols = ref([
+  { field: "id", title: "ID", type: "number", width: "10%", sortable: false },
+  { field: "name", title: "Tên sân", width: "30%" },
+  { field: "name", title: "Loại sân", width: "20%" },
+  { field: "status", title: "Trạng thái", width: "20%" },
+  {
+    field: "actions",
+    title: "Actions",
+    width: "5%",
+    sort: false,
+    filter: false,
+    cellClass: "bh-sticky bh-right-0 bh-bg-blue-light action-cell",
+  },
+]);
+
 const fetchFields = async () => {
   try {
-    const {data} = await fieldService.getFields();
+    const { data } = await fieldService.getFields();
     fields.value = data;
   } catch (error) {
     console.error("Lỗi khi lấy danh sách sân:", error);
@@ -76,6 +98,8 @@ const deleteField = (field) => {
 };
 
 const viewField = (field) => {
+  console.log(field.id);
+
   router.push({ name: "FieldDetail", params: { id: field.id } });
 };
 
@@ -84,6 +108,4 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

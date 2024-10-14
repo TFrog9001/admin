@@ -14,7 +14,7 @@ const isAdmin = computed(() => authStore.isAdmin);
 
       <Sidebar v-if="isAuthenticated && isAdmin"/>
     
-      <v-main class="ma-4">
+      <v-main id="main-content" class="ma-4">
         <router-view></router-view>
       </v-main>
     </v-app>
@@ -22,4 +22,10 @@ const isAdmin = computed(() => authStore.isAdmin);
 </template>
 
 
-<style scoped></style>
+<style scope>
+
+#main-content {
+ background-color: #EEE;
+}
+
+</style>

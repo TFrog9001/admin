@@ -10,6 +10,16 @@ const equipmentService = {
             throw error;
         }
     },
+
+    async getEquipments() {
+        try {        
+            const response = await api.get(`/equipments`)
+            return response;
+        } catch (error) {
+            console.error('Có lỗi xảy ra khi lấy thiết bị', error);
+            throw error;
+        }
+    },
 }
 
 export default equipmentService;

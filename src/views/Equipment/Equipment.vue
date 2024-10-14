@@ -16,14 +16,10 @@
         sortColumn="created_at"
         sortDirection="desc"
         skin="bh-table-striped bh-table-hover bh-table-bordered"
-      >
+      > 
         <template #id="data">
           <strong>#{{ data.value.id }}</strong>
         </template>
-        <template #price="data">
-          {{ formatCurrency(data.value.price) }}
-        </template>
-
         <template #actions="data">
           <div class="flex gap-4">
             <v-icon color="success" @click="openEdit(data.value)">
@@ -46,8 +42,9 @@
         </v-card-title>
         <v-divider></v-divider>
         <v-card-text class="pt-4 pb-8 text-center">
-          Bạn có muốn xóa sản phẩm <strong>{{ itemDelete?.name }}</strong> có ID <strong>#{{ itemDelete?.id }}</strong>này
-           không?
+          Bạn có muốn xóa sản phẩm <strong>{{ itemDelete?.name }}</strong> có ID
+          <strong>#{{ itemDelete?.id }}</strong
+          >này không?
         </v-card-text>
         <v-divider></v-divider>
         <v-card-actions class="justify-end px-4">
@@ -84,17 +81,12 @@
             variant="outlined"
             class="mb-4"
           ></v-text-field>
-          <v-text-field
-            v-model="editedProduct.price"
-            label="Giá bán"
-            type="number"
-            dense
-            variant="outlined"
-          ></v-text-field>
         </v-card-text>
         <v-divider></v-divider>
         <v-card-actions class="justify-end px-4">
-          <v-btn variant="outlined" @click="editDialog = false" color="grey"> Hủy </v-btn>
+          <v-btn variant="outlined" @click="editDialog = false" color="grey">
+            Hủy
+          </v-btn>
           <v-btn @click="saveEdit" color="primary">
             <v-icon left>mdi-content-save</v-icon>Lưu
           </v-btn>
@@ -103,9 +95,10 @@
     </v-dialog>
   </div>
 </template>
+
 <script setup>
 import { ref, onMounted } from "vue";
-import supplyService from "../../services/supplyService";
+import equipmentService from "../../services/equipmentService";
 import Vue3Datatable from "@bhplugin/vue3-datatable";
 import "@bhplugin/vue3-datatable/dist/style.css";
 
@@ -116,7 +109,6 @@ const cols = ref([
   { field: "serial_number", title: "Số serial", width: "30%" },
   { field: "name", title: "Tên sản phẩm", width: "20%" },
   { field: "quantity", title: "Số lượng", type: "number", width: "20%" },
-  { field: "price", title: "Giá bán" },
   {
     field: "actions",
     title: "Actions",
@@ -132,63 +124,47 @@ const confirmDialog = ref(false);
 const editDialog = ref(false);
 const itemDelete = ref(null);
 
-const fetchSupplies = async () => {
+const fetchEquipments = async () => {
   loading.value = true;
   try {
-    const response = await supplyService.getSupplies();
+    const response = await equipmentService.getEquipments();
     rows.value = response.data;
   } finally {
     loading.value = false;
   }
 };
 
-// Mở dialog sửa
 const openEdit = (product) => {
   editedProduct.value = { ...product };
   editDialog.value = true;
 };
 
-// Lưu chỉnh sửa sản phẩm
 const saveEdit = async () => {
   try {
-    await supplyService.updateSupply(
+    await equipmentService.updateEquipment(
       editedProduct.value.id,
       editedProduct.value
     );
-    fetchSupplies();
+    fetchEquipments();
     editDialog.value = false;
   } catch (error) {
     console.error("Failed to update product", error);
   }
 };
 
-// Mở dialog xác nhận xóa
 const openConfirmDialog = (product) => {
   itemDelete.value = product;
   confirmDialog.value = true;
 };
 
-// Xác nhận xóa sản phẩm
 const confirmDelete = async () => {
   try {
-    await supplyService.deleteSupply(itemDelete.value.id);
-    fetchSupplies(); // Reload data sau khi xóa
-    confirmDialog.value = false; // Đóng dialog
+    await equipmentService.deleteEquipment(itemDelete.value.id);
+    fetchEquipments();
+    confirmDialog.value = false;
   } catch (error) {
     console.error("Failed to delete product", error);
   }
-};
-
-const formatDateTime = (date) => {
-  const d = new Date(date);
-  const hours = d.getHours().toString().padStart(2, "0");
-  const minutes = d.getMinutes().toString().padStart(2, "0");
-  const formattedDate = new Intl.DateTimeFormat("en-GB", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(d);
-  return `${hours}:${minutes} ${formattedDate.replace(/\//g, "-")}`;
 };
 
 const formatCurrency = (amount) => {
@@ -200,7 +176,8 @@ const formatCurrency = (amount) => {
   );
 };
 
+
 onMounted(() => {
-  fetchSupplies();
+  fetchEquipments();
 });
 </script>

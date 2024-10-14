@@ -9,7 +9,7 @@
       </div>
     </div>
 
-    <div class="">
+    <div class="bg-white p-2">
       <vue3-datatable
         id="receipt_table"
         :rows="rows"
@@ -19,7 +19,7 @@
         :columnFilter="true"
         sortColumn="created_at"
         sortDirection="desc"
-        skin="bh-table-striped bh-table-hover bh-table-bordered bh-table-compact"
+        skin="bh-table-striped bh-table-hover bh-table-bordered"
       >
         <template #id="data">
           <strong>#{{ data.value.id }}</strong>

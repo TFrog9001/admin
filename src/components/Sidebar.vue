@@ -53,22 +53,34 @@
         value="booking"
         :to="{ name: 'Booking' }"
       ></v-list-item>
-    </v-list>
-    <v-divider inset></v-divider>
-    <v-list-item
-      prepend-icon="mdi-home-import-outline"
-      title="Nhập hàng"
-      value="receipt"
-      :to="{ name: 'Receipt' }"
-    ></v-list-item>
-    <v-list-item
-      prepend-icon="mdi-food-fork-drink"
-      title="Đồ ăn thức uống"
-      value="supply"
-      :to="{ name: 'Supply' }"
-    ></v-list-item>
+      <v-list-item
+        prepend-icon="mdi-clipboard-text-clock"
+        title="Lịch sử đặt sân"
+        value="history"
+        :to="{ name: 'History' }"
+      ></v-list-item>
 
-    
+      <v-divider inset></v-divider>
+
+      <v-list-item
+        prepend-icon="mdi-home-import-outline"
+        title="Nhập hàng"
+        value="receipt"
+        :to="{ name: 'Receipt' }"
+      ></v-list-item>
+      <v-list-item
+        prepend-icon="mdi-food-fork-drink"
+        title="Đồ ăn thức uống"
+        value="supply"
+        :to="{ name: 'Supply' }"
+      ></v-list-item>
+      <v-list-item
+        prepend-icon="mdi-hammer-screwdriver"
+        title="Trang thiết bị"
+        value="equipment"
+        :to="{ name: 'Equipment' }"
+      ></v-list-item>
+    </v-list>
     <template v-slot:append>
       <v-divider inset></v-divider>
       <div class="pa-3">

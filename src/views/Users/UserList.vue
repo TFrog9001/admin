@@ -1,238 +1,184 @@
 <template>
-  <v-card>
-    <v-card-title>
-      Danh sách người dùng
-      <v-spacer></v-spacer>
-      <v-btn class="justify-end" color="primary" @click="openDialog('add')">
-        Thêm người dùng
-      </v-btn>
-    </v-card-title>
+  <div class="container-fluid">
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="text-3xl">Danh sách người dùng</h2>
+      <div class="text-end">
+        <v-btn @click="openDialog" color="primary"> Thêm người dùng </v-btn>
+      </div>
+    </div>
 
-    <v-data-table
-      :headers="headers"
-      :items="users"
-      item-value="id"
-      :search="search"
-    >
-      <template v-slot:top>
-        <v-toolbar flat>
-          <v-spacer></v-spacer>
-          <v-text-field
-            v-model="search"
-            label="Tìm kiếm"
-            class="custom-search"
-            hide-details
-            solo
-            flat
-            density="comfortable"
-            prepend-inner-icon="mdi-magnify"
-          ></v-text-field>
-        </v-toolbar>
-      </template>
+    <div class="bg-white p-2">
+      <vue3-datatable
+        id="user_table"
+        :rows="rows"
+        :columns="cols"
+        :loading="loading"
+        :sortable="true"
+        :columnFilter="true"
+        sortColumn="created_at"
+        sortDirection="desc"
+        skin="bh-table-striped bh-table-hover bh-table-bordered"
+      >
+        <template #id="data">
+          <strong>#{{ data.value.id }}</strong>
+        </template>
+        <template #actions="data">
+          <div class="flex gap-4">
+            <v-icon color="success" @click="openDialog(data.value)">
+              mdi-pencil
+            </v-icon>
+            <v-icon color="error" @click="openConfirmDialog(data.value)">
+              mdi-delete
+            </v-icon>
+          </div>
+        </template>
+      </vue3-datatable>
+    </div>
 
-      <template v-slot:item.actions="{ item }">
-        <v-icon color="success" @click="editUser(item)">mdi-pencil</v-icon>
-        <v-icon color="error" @click="confirmDeleteUser(item)"
-          >mdi-delete</v-icon
-        >
-      </template>
-    </v-data-table>
-  </v-card>
+    <!-- Dialog thêm/sửa người dùng -->
+    <v-dialog v-model="dialog" max-width="500px">
+      <v-card>
+        <v-card-title class="text-h6">Thêm/Sửa Người dùng</v-card-title>
+        <v-card-text>
+          <v-form ref="form">
+            <v-text-field v-model="editedUser.name" label="Tên" required />
+            <v-text-field v-model="editedUser.email" label="Email" required />
+            <v-text-field v-model="editedUser.phone" label="Số điện thoại" />
+            <v-text-field
+              v-model="editedUser.password"
+              :type="showPassword ? 'text' : 'password'"
+              label="Mật khẩu"
+            />
+            <v-text-field
+              v-model="editedUser.confirmPassword"
+              :type="showPassword ? 'text' : 'password'"
+              label="Xác nhận mật khẩu"
+            />
+          </v-form>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="primary" @click="saveUser">Lưu</v-btn>
+          <v-btn @click="dialog = false">Hủy</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
-  <!-- Dialog for Add/Edit User -->
-  <v-dialog v-model="dialog" max-width="600px">
-    <v-card>
-      <v-card-title>
-        {{ editedUser.id ? "Chỉnh sửa người dùng" : "Thêm người dùng" }}
-      </v-card-title>
-      <v-card-text>
-        <v-form ref="form" v-model="valid">
-          <!-- Tên -->
-          <v-text-field v-model="editedUser.name" label="Tên"></v-text-field>
-          <!-- Email -->
-          <v-text-field
-            autocomplete="off"
-            v-model="editedUser.email"
-            label="Email"
-          ></v-text-field>
-          <!-- Điện thoại -->
-          <v-text-field
-            v-model="editedUser.phone"
-            label="Điện thoại"
-          ></v-text-field>
-          <!-- Hình ảnh (avatar) -->
-          <v-file-input
-            v-model="editedUser.avatar"
-            label="Chọn hình đại diện"
-            accept="image/*"
-          ></v-file-input>
-          <v-img
-            v-if="editedUser.avatar"
-            :src="editedUser.avatar"
-            max-width="100"
-            class="mt-3"
-          ></v-img>
-          <!-- Mật khẩu -->
-          <v-text-field
-            v-model="password"
-            :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-            :type="showPassword ? 'text' : 'password'"
-            label="Mật khẩu"
-            @click:append="showPassword = !showPassword"
-            autocomplete="new-password"
-          ></v-text-field>
-
-          <!-- Xác nhận mật khẩu -->
-          <v-text-field
-            v-model="confirmPassword"
-            :append-icon="showConfirmPassword ? 'mdi-eye' : 'mdi-eye-off'"
-            :type="showConfirmPassword ? 'text' : 'password'"
-            label="Xác nhận mật khẩu"
-            @click:append="showConfirmPassword = !showConfirmPassword"
-            autocomplete="new-password"
-          ></v-text-field>
-        </v-form>
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn color="blue darken-1" @click="saveUser">Lưu</v-btn>
-        <v-btn color="error" @click="closeDialog">Hủy</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
-  <!-- Dialog for Confirm Delete -->
-  <v-dialog v-model="deleteDialog" max-width="400px">
-    <v-card>
-      <v-card-title class="headline">Xác nhận xóa</v-card-title>
-      <v-card-text>Bạn có chắc chắn muốn xóa người dùng này?</v-card-text>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn color="error" @click="deleteUser">Xóa</v-btn>
-        <v-btn @click="deleteDialog = false">Hủy</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+    <!-- Dialog xác nhận xóa -->
+    <v-dialog v-model="confirmDialog" max-width="500px">
+      <v-card>
+        <v-card-title class="text-h6">
+          <v-icon left color="warning">mdi-alert</v-icon>
+          Xác nhận xóa</v-card-title>
+        <v-card-text>
+          
+          Bạn có chắc chắn muốn xóa người dùng
+          <strong>#{{ userToDelete?.id  + " - "+ userToDelete?.name}}</strong> không?
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="red" @click="confirmDelete">Xóa</v-btn>
+          <v-btn @click="confirmDialog = false">Hủy</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from "vue";
+import { ref, onMounted } from "vue";
+import Vue3Datatable from "@bhplugin/vue3-datatable";
+import "@bhplugin/vue3-datatable/dist/style.css";
 import userService from "../../services/userService";
 
-const users = ref([]);
-const headers = [
-  { title: "ID", value: "id" },
-  { title: "Name", value: "name" },
-  { title: "Email", value: "email" },
-  { title: "Phone number", value: "phone" },
-  { title: "Actions", value: "actions", sortable: false },
-];
-const search = ref("");
 const dialog = ref(false);
-const deleteDialog = ref(false);
-const editedUser = reactive({
+const confirmDialog = ref(false);
+const userToDelete = ref(null);
+const loading = ref(true);
+const rows = ref([]);
+const cols = ref([
+  { field: "id", title: "ID", type: "number", width: "10%" },
+  { field: "name", title: "Tên", width: "30%" },
+  { field: "email", title: "Email", width: "30%" },
+  { field: "phone", title: "Số điện thoại", width: "20%" },
+  {
+    field: "actions",
+    title: "Actions",
+    width: "10%",
+    sortable: false,
+    filter: false,
+    cellClass: "action-cell",
+  },
+]);
+
+const editedUser = ref({
   id: null,
   name: "",
   email: "",
   phone: "",
-  avatar: null,
+  password: "",
+  confirmPassword: "",
 });
-const password = ref("");
-const confirmPassword = ref("");
-const selectedUser = ref(null);
-const valid = ref(false);
-const showPassword = ref(false);
-const showConfirmPassword = ref(false);
 
-const fetchUsers = async () => {
+const getUsers = async () => {
   try {
-    const response = await userService.getUsers();
-    users.value = response.data.users;
+    loading.value = true;
+    const response = await userService.getCustomers();
+    console.log(response);
+    
+    rows.value = response.data.users
   } catch (error) {
-    console.error("Lỗi khi lấy danh sách người dùng:", error);
+    console.error(error);
+  } finally {
+    loading.value = false;
   }
 };
 
-const openDialog = (action, user = null) => {
-  if (action === "add") {
-    Object.assign(editedUser, {
+const openDialog = (user = null) => {
+  if (user) {
+    editedUser.value = { ...user };
+  } else {
+    editedUser.value = {
       id: null,
       name: "",
       email: "",
       phone: "",
-      avatar: null,
-    });
-    password.value = "";
-    confirmPassword.value = "";
-  } else if (action === "edit") {
-    Object.assign(editedUser, user);
+      password: "",
+      confirmPassword: "",
+    };
   }
   dialog.value = true;
 };
 
-const closeDialog = () => {
+const saveUser = async () => {
+  if (editedUser.value.id) {
+    await userService.updateUser(editedUser.value.id, editedUser.value);
+  } else {
+    await userService.createUser(editedUser.value);
+  }
+  getUsers();
   dialog.value = false;
 };
 
-const saveUser = async () => {
-  if (password.value !== confirmPassword.value) {
-    alert("Mật khẩu và Xác nhận mật khẩu không khớp");
-    return;
-  }
-  try {
-    if (editedUser.id) {
-      await userService.editUser(
-        { ...editedUser, password: password.value },
-        editedUser.id
-      );
-    } else {
-      await userService.addUser({
-        ...editedUser,
-        password: password.value,
-      });
-    }
-    fetchUsers();
-  } catch (error) {
-    console.error("Lỗi khi lưu người dùng:", error);
-  } finally {
-    closeDialog();
-  }
+const openConfirmDialog = (user) => {
+  userToDelete.value = user;
+  confirmDialog.value = true;
 };
 
-const confirmDeleteUser = (user) => {
-  selectedUser.value = user;
-  deleteDialog.value = true;
-};
-
-const deleteUser = async () => {
-  try {
-    await userService.deleteUserById(selectedUser.value.id);
-    fetchUsers();
-  } catch (error) {
-    console.error("Lỗi khi xóa người dùng:", error);
-  } finally {
-    deleteDialog.value = false;
+const confirmDelete = async () => {
+  if (userToDelete.value) {
+    await userService.deleteUser(userToDelete.value.id);
+    rows.value = rows.value.filter((row) => row.id !== userToDelete.value.id);
+    confirmDialog.value = false;
   }
-};
-
-const editUser = (user) => {
-  openDialog("edit", user);
 };
 
 onMounted(() => {
-  fetchUsers();
+  getUsers();
 });
 </script>
 
 <style scoped>
-.custom-search {
-  max-width: 300px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  margin-right: 16px;
-}
-
-.v-text-field__details {
-  display: none;
+.action-cell {
+  display: flex;
+  justify-content: space-around;
 }
 </style>
