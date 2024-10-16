@@ -114,10 +114,13 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import Vue3Datatable from "@bhplugin/vue3-datatable";
 import "@bhplugin/vue3-datatable/dist/style.css";
-import bookingService from "../../services/bookingService"; // Đảm bảo service này đã tồn tại
+import bookingService from "../../services/bookingService";
+import { showNotification } from "../../utils/notification";
 
+const router = useRouter();
 const loading = ref(true);
 const rows = ref([]);
 const filteredRows = ref([]); // Dữ liệu đã lọc
@@ -131,11 +134,12 @@ const cols = ref([
   { field: "field.name", title: "Sân", type: "string" },
   { field: "booking_date", title: "Ngày đặt", type: "date" },
   { field: "time", title: "Thời lượng", filter: false },
-  { field: "field_price", title: "Phí sân", filter: false },
+  { field: "field_price", title: "Phí sân", filter: false},
   {
     field: "status",
     title: "Trạng thái",
     filter: false,
+    sort: false,
   },
   {
     field: "actions",
@@ -158,12 +162,17 @@ const fetchBookings = async () => {
       };
     });
     filteredRows.value = rows.value;
-    console.log("Fetched rows:", rows.value);
   } finally {
     loading.value = false;
   }
 };
 
+const openEdit = (data) => {
+  router.push(`/booking/${data.id}`);
+}
+
+
+/// filter 
 const filterByStatus = () => {
   console.log("Selected Status:", selectedStatus.value);
 
@@ -223,6 +232,7 @@ const confirmDelete = async () => {
     await bookingService.deleteBooking(itemDelete.value.id);
     fetchBookings(); // Reload lại danh sách sau khi xóa
     confirmDialog.value = false;
+    showNotification({message: "Xóa phiếu đặt thành công", type: "success"})
   } catch (error) {
     console.error("Failed to delete booking", error);
   }
@@ -235,19 +245,5 @@ onMounted(() => {
 </script>
 
 <style scope>
-.status-paid {
-  color: #2d8d30; /* Màu xanh lá cây cho Đã thanh toán */
-}
 
-.status-booked {
-  color: #2196f3; /* Màu xanh dương cho Đã đặt */
-}
-
-.status-deposited {
-  color: #ff9800; /* Màu cam cho Đã cọc */
-}
-
-.status-cancelled {
-  color: #f44336; /* Màu đỏ cho Hủy */
-}
 </style>

@@ -443,6 +443,7 @@ onMounted(async () => {
   border: 1px #00000033 solid;
   padding: 15px;
   border-radius: 8px;
+  background-color: white;
 }
 
 /* Responsive adjustments */

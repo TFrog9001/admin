@@ -38,13 +38,14 @@
     <!-- Dialog thêm/sửa người dùng -->
     <v-dialog v-model="dialog" max-width="500px">
       <v-card>
-        <v-card-title class="text-h6">Thêm/Sửa Người dùng</v-card-title>
+        <v-card-title class="text-h6 bg-teal-darken-2">Thêm/Sửa Người dùng</v-card-title>
         <v-card-text>
-          <v-form ref="form">
+          <v-form ref="form" autocomplete="off">
             <v-text-field v-model="editedUser.name" label="Tên" required />
             <v-text-field v-model="editedUser.email" label="Email" required />
             <v-text-field v-model="editedUser.phone" label="Số điện thoại" />
             <v-text-field
+              autocomplete="new-password"
               v-model="editedUser.password"
               :type="showPassword ? 'text' : 'password'"
               label="Mật khẩu"
@@ -68,11 +69,12 @@
       <v-card>
         <v-card-title class="text-h6">
           <v-icon left color="warning">mdi-alert</v-icon>
-          Xác nhận xóa</v-card-title>
+          Xác nhận xóa</v-card-title
+        >
         <v-card-text>
-          
           Bạn có chắc chắn muốn xóa người dùng
-          <strong>#{{ userToDelete?.id  + " - "+ userToDelete?.name}}</strong> không?
+          <strong>#{{ userToDelete?.id + " - " + userToDelete?.name }}</strong>
+          không?
         </v-card-text>
         <v-card-actions>
           <v-btn color="red" @click="confirmDelete">Xóa</v-btn>
@@ -123,8 +125,8 @@ const getUsers = async () => {
     loading.value = true;
     const response = await userService.getCustomers();
     console.log(response);
-    
-    rows.value = response.data.users
+
+    rows.value = response.data.users;
   } catch (error) {
     console.error(error);
   } finally {

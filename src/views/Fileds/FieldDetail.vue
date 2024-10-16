@@ -33,7 +33,7 @@
           variant="tonal"
           @click="saveField"
         >
-          {{ route.params.id ? "Save" : "Create" }}
+          {{ route.params.id ? "Lưu" : "Tạo mới" }}
         </v-btn>
         <v-btn
           v-if="route.params.id"
@@ -42,7 +42,7 @@
           variant="tonal"
           @click="deleteField"
         >
-          Delete
+          Xóa
         </v-btn>
       </v-card-actions>
     </v-col>
@@ -52,12 +52,12 @@
 
   <v-row>
     <v-col cols="12">
-      <v-btn color="primary" @click="openDialog">+ Add Time Slot</v-btn>
+      <v-btn color="primary" @click="openDialog">+ Thêm khung giờ</v-btn>
     </v-col>
 
     <v-dialog v-model="dialog" max-width="600">
       <v-card>
-        <v-card-title class="text-h6">
+        <v-card-title class="text-h6 bg-teal-darken-2">
           {{ selectedTimeSlot ? "Chỉnh sửa khung giờ" : "Thêm mới khung giờ" }}
         </v-card-title>
 
@@ -67,7 +67,7 @@
           <v-form ref="timeSlotForm">
             <v-row>
               <v-col>
-                <label>Start time:</label>
+                <label>Bắt đầu: </label>
                 <TimePicker
                   v-model="newTimeSlot.start_time"
                   format="HH:mm"
@@ -82,7 +82,7 @@
               </v-col>
 
               <v-col>
-                <label>End Time:</label>
+                <label>Kết thúc: </label>
                 <TimePicker
                   v-model="newTimeSlot.end_time"
                   format="HH:mm"
@@ -113,9 +113,9 @@
         <v-divider></v-divider>
 
         <v-card-actions class="justify-end">
-          <v-btn color="secondary" text @click="closeDialog">Cancel</v-btn>
-          <v-btn color="primary" @click="saveTimeSlot">
-            {{ selectedTimeSlot ? "Save" : "Add" }}
+          <v-btn color="error" variant="outlined" text @click="closeDialog">Hủy</v-btn>
+          <v-btn color="primary" variant="outlined" @click="saveTimeSlot">
+            {{ selectedTimeSlot ? "Lưu" : "Thêm" }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -243,7 +243,7 @@ const openDialog = () => {
 
 const closeDialog = () => {
   dialog.value = false;
-  newTimeSlot.value = { start_time: "", end_time: "", price: 100000 };
+  newTimeSlot.value = { start_time: "", end_time: "", price: "" };
   selectedTimeSlot.value = null;
 };
 
