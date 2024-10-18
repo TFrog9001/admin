@@ -1,34 +1,74 @@
 <template>
-  <div>
+  <div class="container-fluid">
     <v-btn prepend-icon="mdi-menu" color="primary" @click="showMenu = true">
       Thêm item
     </v-btn>
     <v-divider></v-divider>
     <!-- Bảng hiển thị các item đã thêm -->
-    <v-table>
+    <table class="table table-bordered table-responsive">
       <thead>
         <tr>
           <th>Tên item</th>
-          <th>Số lượng</th>
+          <th style="width: 10%">Số lượng</th>
           <th>Giá</th>
           <th>Tổng tiền</th>
-          <th>Hành động</th>
+          <th style="width: 10%">Hành động</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="item in addedItems" :key="item.id">
           <td>{{ item.supply.name }}</td>
-          <td>{{ item.quantity }}</td>
+          <td>
+            <input
+              type="number"
+              v-model.number="item.quantity"
+              @change="handleQuantityChange(item)"
+              min="0"
+            />
+          </td>
           <td>{{ formatCurrency(item.price) }} VND</td>
           <td>{{ formatCurrency(item.quantity * item.price) }} VND</td>
           <td>
-            <v-icon left color="red darken-2" @click="removeFromMainTable(item)"
+            <v-icon left color="red-darken-2" @click="openDeleteDialog(item)"
               >mdi-delete</v-icon
             >
+            <v-icon
+              v-if="item.isEdited"
+              color="green"
+              @click="updateItemQuantity(item)"
+            >
+              mdi-content-save-edit-outline
+            </v-icon>
           </td>
         </tr>
       </tbody>
-    </v-table>
+    </table>
+    <v-divider></v-divider>
+
+    <div class="my-2">
+      <div>
+        
+      </div>
+      <h4>Thanh toán: {{ formatCurrency(billTotalAmount) }} VND</h4>
+      <v-radio-group v-model="paymentMethod">
+        <v-radio label="Tiền mặt" value="cash"></v-radio>
+        <v-radio label="ZaloPay" value="zalopay">
+          <template v-slot:label>
+            <img
+              src="@/assets/images/1715337285_zNBo0.png"
+              alt="ZaloPay Logo"
+              style="
+                height: 50px;
+                margin-right: 8px;
+                filter: contrast(210%) brightness(90%);
+              "
+            />
+            Thanh toán với ZaloPay
+          </template>
+        </v-radio>
+      </v-radio-group>
+      <v-btn color="primary" @click="processPayment">Xác nhận thanh toán</v-btn>
+    </div>
 
     <!-- Popup để hiển thị danh sách đồ uống -->
     <v-dialog v-model="showMenu" persistent max-width="600px">
@@ -161,21 +201,36 @@
       </v-card>
     </v-dialog>
   </div>
+
+  <v-dialog v-model="deleteDialog" persistent max-width="400px">
+    <v-card>
+      <v-card-title class="text-h6 font-bold">
+        <v-icon left color="warning">mdi-alert</v-icon>
+        Xác nhận xóa
+      </v-card-title>
+      <v-divider></v-divider>
+      <v-card-text class="text-center">
+        Bạn có chắc xóa <strong>{{ itemToDelete?.supply.name }}</strong> ra khỏi
+        giỏ hàng không?
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions class="justify-end px-4">
+        <v-btn outlined @click="deleteDialog = false" color="grey"> Hủy </v-btn>
+        <v-btn @click="confirmDelete" color="red darken-2">
+          <v-icon left>mdi-delete</v-icon>Xóa
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, defineProps, watch } from "vue";
 import supplyService from "../../services/supplyService";
 import billService from "../../services/billService";
+import paymentSerice from "../../services/paymentService";
 
 import { showNotification } from "../../utils/notification";
-
-const showMenu = ref(false);
-const search = ref("");
-const loadingSearch = ref(false);
-const items = ref([]);
-const tempItems = ref([]);
-const addedItems = ref([]);
 
 const props = defineProps({
   bookingId: {
@@ -187,6 +242,79 @@ const props = defineProps({
     required: true,
   },
 });
+
+const showMenu = ref(false);
+const search = ref("");
+const loadingSearch = ref(false);
+const items = ref([]);
+const tempItems = ref([]);
+const addedItems = ref([]);
+const paymentMethod = ref("cash");
+const billTotalAmount = ref(props.bill.total_amount);
+
+const deleteDialog = ref(false);
+const itemToDelete = ref(null);
+
+// Mở popup xác nhận xóa
+const openDeleteDialog = (item) => {
+  itemToDelete.value = item;
+  deleteDialog.value = true;
+
+  console.log(itemToDelete.value);
+};
+
+const confirmDelete = async () => {
+  try {
+    await billService.removeItem(props.bill.id, itemToDelete.value.id);
+
+    billTotalAmount.value -=
+      itemToDelete.value.quantity * itemToDelete.value.price;
+    addedItems.value = addedItems.value.filter(
+      (item) => item.id !== itemToDelete.value.id
+    );
+    showNotification({
+      title: "Xóa thành công",
+      message: `Đã xóa ${itemToDelete.value.supply.name} thành công`,
+      type: "success",
+    });
+    deleteDialog.value = false;
+  } catch (error) {
+    console.error("Lỗi khi xóa:", error);
+    showNotification({
+      title: "Lỗi",
+      message: "Có lỗi xảy ra khi xóa item.",
+      type: "error",
+    });
+  }
+};
+
+// Handle quantity change
+const handleQuantityChange = (item) => {
+  item.isEdited = true;
+  if (item.quantity <= 0) {
+    openDeleteDialog(item);
+  }
+};
+
+// Cập nhật số lượng item
+const updateItemQuantity = async (item) => {
+  try {
+    await billService.updateItemQuantity(item.id, item.quantity);
+    showNotification({
+      title: "Cập nhật thành công",
+      message: `Đã cập nhật số lượng cho ${item.supply.name}`,
+      type: "success",
+    });
+    item.isEdited = false;
+  } catch (error) {
+    console.error("Lỗi khi cập nhật số lượng:", error);
+    showNotification({
+      title: "Lỗi",
+      message: "Có lỗi xảy ra khi cập nhật số lượng.",
+      type: "error",
+    });
+  }
+};
 
 const validateQuantity = (item) => {
   if (item.quantity <= 0) {
@@ -255,11 +383,19 @@ const confirmItems = async () => {
 
     addedItems.value = rp.data;
 
+    console.log(rp.data);
+
     console.log(response.data);
+
+    billTotalAmount.value += Math.floor(
+      tempItems.value.reduce((total, item) => {
+        return total + item.quantity * item.price;
+      }, 0)
+    );
 
     showNotification({
       title: "Thông báo",
-      message: response.data.message, 
+      message: response.data.message,
       type: "success",
     });
 
@@ -313,6 +449,64 @@ watch(showMenu, (newValue) => {
     fetchSupplies();
   }
 });
+// thanh toan
+const processPayment = async () => {
+  console.log(paymentMethod.value);
+  // const response = await billService.createBill(props.bill.id);
+  // console.log(response.data);
+
+  // if (paymentMethod.value == "zalopay") {
+    
+  // }
+
+  if (paymentMethod.value === "zalopay") {
+      try {
+        const zaloPayResult = await paymentSerice.createZalopayBill(props.bill.id);
+        const qr_url = zaloPayResult.data.zalopay.order_url;
+
+        const popup = window.open(qr_url, "_blank", "width=500,height=600");
+
+        // Check if the popup was successfully created
+        if (popup) {
+          const timer = setInterval(() => {
+            if (popup.closed) {
+              clearInterval(timer);
+              showNotification({
+                title: "Thông báo",
+                message: "Thanh toán hóa đơn thành công",
+                type: "success",
+              });
+            }
+          }, 500);
+        } else {
+          console.error("Popup was blocked or failed to open.");
+        }
+      } catch (error) {
+        console.error("Error creating ZaloPay payment:", error);
+      }
+    } else {
+      try {
+        const respone = await billService.paymentBill(props.bill.id);
+
+        console.log(respone);
+        
+        showNotification({
+          title: "Thông báo",
+          message: "Đã thanh toán thành công",
+          type: "success",
+        });
+      } catch (error) {
+        errorMessage.value = error.response.data.message;
+        // showNotification({
+        //   title: "Thông báo",
+        //   message: error.response.data.message,
+        //   type: "success",
+        // });
+        console.error("Error creating booking:", error);
+      }
+    }
+};
+// end thanh toan
 
 onMounted(() => {
   addedItems.value = props.bill.supplies;

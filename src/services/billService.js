@@ -2,9 +2,9 @@ import api from "../axios/api";
 
 const billService = {
     async getBillByBookingId(id) {
-        try {        
+        try {
             const response = await api.get(`/bills`, {
-                params:{
+                params: {
                     booking_id: id
                 }
             })
@@ -14,8 +14,8 @@ const billService = {
             throw error;
         }
     },
-    async addItems(bill_id,items) {
-        try {        
+    async addItems(bill_id, items) {
+        try {
             const response = await api.post(`/bills/addItems`, {
                 bill_id: bill_id,
                 items: items
@@ -28,7 +28,7 @@ const billService = {
     },
 
     async getBillSupplies(id) {
-        try {        
+        try {
             const response = await api.get(`/bills/details/${id}`);
             return response;
         } catch (error) {
@@ -36,6 +36,43 @@ const billService = {
             throw error;
         }
     },
+
+    async updateItemQuantity(detail_id, quantity) {
+        try {
+            const response = await api.post(`/bills/details/${detail_id}`,
+                {
+                    quantity: quantity
+                });
+            return response;
+        } catch (error) {
+            console.error('Có lỗi xảy ra khi cập nhập', error);
+            throw error;
+        }
+    },
+
+    async removeItem(bill_id, detail_id) {
+        try {
+            const response = await api.delete(`/bills/details/${detail_id}`);
+            return response;
+        } catch (error) {
+            console.error('Có lỗi xảy ra khi xóa sản phẩm', error);
+            throw error;
+        }
+    },
+
+    async paymentBill(bill_id) {
+        try {
+            const response = await api.post(`/bills/${bill_id}/payment`);
+            return response;
+        } catch (error) {
+            console.error('Có lỗi xảy ra khi xóa sản phẩm', error);
+            throw error;
+        }
+    },
+
+
+
+
 }
 
 export default billService;
