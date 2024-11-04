@@ -652,65 +652,157 @@ const resetBookings = () => {
 };
 
 // Fetch bookings
+// const fetchBookings = async () => {
+//   resetBookings();
+//   const isFailedBooking = selectedBookingType.value === "failed";
+//   if (selectedField.value) {
+//     const datas = await Promise.all(
+//       weekDays.value.map((day) =>
+//         isFailedBooking
+//           ? bookingService.getFailBookings(day.date)
+//           : bookingService.getBookings(day.date)
+//       )
+//     );
+//     for (const data of datas) {
+//       data.forEach((booking) => {
+//         if (booking.field_id === selectedField.value) {
+//           const startIndex = timeSlots.findIndex(
+//             (time) => time === booking.start_time.slice(0, 5)
+//           );
+//           const endIndex = timeSlots.findIndex(
+//             (time) => time === booking.end_time.slice(0, 5)
+//           );
+
+//           if (startIndex !== -1 && endIndex !== -1) {
+//             for (let i = startIndex; i < endIndex; i++) {
+//               if (!bookings.value[selectedField.value][day.date]) {
+//                 bookings.value[selectedField.value][day.date] = Array(
+//                   timeSlots.length
+//                 ).fill(null);
+//               }
+//               bookings.value[selectedField.value][day.date][i] = booking;
+//             }
+//           }
+//         }
+//       });
+//     }
+//   } else {
+//     const { data } = await (isFailedBooking
+//       ? bookingService.getFailBookings(getLocalDate(selectedDate.value))
+//       : bookingService.getBookings(getLocalDate(selectedDate.value)));
+//     data.forEach((booking) => {
+//       const fieldId = booking.field_id;
+//       const startIndex = timeSlots.findIndex(
+//         (time) => time === booking.start_time.slice(0, 5)
+//       );
+//       const endIndex = timeSlots.findIndex(
+//         (time) => time === booking.end_time.slice(0, 5)
+//       );
+
+//       if (startIndex !== -1 && endIndex !== -1) {
+//         for (let i = startIndex; i < endIndex; i++) {
+//           if (!bookings.value[fieldId][getLocalDate(selectedDate.value)]) {
+//             bookings.value[fieldId][getLocalDate(selectedDate.value)] = Array(
+//               timeSlots.length
+//             ).fill(null);
+//           }
+//           bookings.value[fieldId][getLocalDate(selectedDate.value)][i] =
+//             booking;
+//         }
+//       }
+//     });
+//   }
+// };
+
 const fetchBookings = async () => {
   resetBookings();
   const isFailedBooking = selectedBookingType.value === "failed";
-  if (selectedField.value) {
-    const datas = await Promise.all(
-      weekDays.value.map((day) =>
-        isFailedBooking
-          ? bookingService.getFailBookings(day.date) 
-          : bookingService.getBookings(day.date) 
-      )
-    );
-    for (const data of datas) {
-      data.forEach((booking) => {
-        if (booking.field_id === selectedField.value) {
-          const startIndex = timeSlots.findIndex(
-            (time) => time === booking.start_time.slice(0, 5)
-          );
-          const endIndex = timeSlots.findIndex(
-            (time) => time === booking.end_time.slice(0, 5)
-          );
 
-          if (startIndex !== -1 && endIndex !== -1) {
-            for (let i = startIndex; i < endIndex; i++) {
-              if (!bookings.value[selectedField.value][day.date]) {
-                bookings.value[selectedField.value][day.date] = Array(
-                  timeSlots.length
-                ).fill(null);
+  try {
+    if (selectedField.value) {
+      const datas = await Promise.all(
+        weekDays.value.map((day) =>
+          isFailedBooking
+            ? bookingService.getFailBookings(day.date)
+            : bookingService.getBookings(day.date)
+        )
+      );
+
+      // Ghi lại dữ liệu để kiểm tra
+      console.log(datas);
+
+      weekDays.value.forEach((day, index) => {
+        const response = datas[index]; // Lấy phản hồi tương ứng với ngày
+
+        // Lấy mảng từ thuộc tính data
+        const data = response.data;
+
+        if (!Array.isArray(data)) {
+          console.error("Dữ liệu mong đợi là một mảng nhưng nhận được:", data);
+          return; // Bỏ qua nếu dữ liệu không phải là mảng
+        }
+
+        data.forEach((booking) => {
+          if (booking.field_id === selectedField.value) {
+            const startIndex = timeSlots.findIndex(
+              (time) => time === booking.start_time.slice(0, 5)
+            );
+            const endIndex = timeSlots.findIndex(
+              (time) => time === booking.end_time.slice(0, 5)
+            );
+
+            if (startIndex !== -1 && endIndex !== -1) {
+              for (let i = startIndex; i < endIndex; i++) {
+                if (!bookings.value[selectedField.value][day.date]) {
+                  bookings.value[selectedField.value][day.date] = Array(
+                    timeSlots.length
+                  ).fill(null);
+                }
+                bookings.value[selectedField.value][day.date][i] = booking;
               }
-              bookings.value[selectedField.value][day.date][i] = booking;
             }
+          }
+        });
+      });
+    } else {
+      const response = await (isFailedBooking
+        ? bookingService.getFailBookings(getLocalDate(selectedDate.value))
+        : bookingService.getBookings(getLocalDate(selectedDate.value)));
+
+      // Lấy mảng từ thuộc tính data
+      const data = response.data;
+
+      console.log(data);
+
+      if (!Array.isArray(data)) {
+        console.error("Dữ liệu mong đợi là một mảng nhưng nhận được:", data);
+        return; // Thoát nếu dữ liệu không phải là mảng
+      }
+
+      data.forEach((booking) => {
+        const fieldId = booking.field_id;
+        const startIndex = timeSlots.findIndex(
+          (time) => time === booking.start_time.slice(0, 5)
+        );
+        const endIndex = timeSlots.findIndex(
+          (time) => time === booking.end_time.slice(0, 5)
+        );
+
+        if (startIndex !== -1 && endIndex !== -1) {
+          for (let i = startIndex; i < endIndex; i++) {
+            if (!bookings.value[fieldId][getLocalDate(selectedDate.value)]) {
+              bookings.value[fieldId][getLocalDate(selectedDate.value)] = Array(
+                timeSlots.length
+              ).fill(null);
+            }
+            bookings.value[fieldId][getLocalDate(selectedDate.value)][i] =
+              booking;
           }
         }
       });
     }
-  } else {
-    const { data } = await (isFailedBooking
-      ? bookingService.getFailBookings(getLocalDate(selectedDate.value))
-      : bookingService.getBookings(getLocalDate(selectedDate.value)));
-    data.forEach((booking) => {
-      const fieldId = booking.field_id;
-      const startIndex = timeSlots.findIndex(
-        (time) => time === booking.start_time.slice(0, 5)
-      );
-      const endIndex = timeSlots.findIndex(
-        (time) => time === booking.end_time.slice(0, 5)
-      );
-
-      if (startIndex !== -1 && endIndex !== -1) {
-        for (let i = startIndex; i < endIndex; i++) {
-          if (!bookings.value[fieldId][getLocalDate(selectedDate.value)]) {
-            bookings.value[fieldId][getLocalDate(selectedDate.value)] = Array(
-              timeSlots.length
-            ).fill(null);
-          }
-          bookings.value[fieldId][getLocalDate(selectedDate.value)][i] =
-            booking;
-        }
-      }
-    });
+  } catch (error) {
+    console.error("Lỗi khi lấy đặt chỗ:", error);
   }
 };
 

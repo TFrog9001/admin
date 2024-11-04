@@ -46,8 +46,9 @@
         </v-card-title>
         <v-divider></v-divider>
         <v-card-text class="pt-4 pb-8 text-center">
-          Bạn có muốn xóa sản phẩm <strong>{{ itemDelete?.name }}</strong> có ID <strong>#{{ itemDelete?.id }}</strong>này
-           không?
+          Bạn có muốn xóa sản phẩm <strong>{{ itemDelete?.name }}</strong> có ID
+          <strong>#{{ itemDelete?.id }}</strong
+          >này không?
         </v-card-text>
         <v-divider></v-divider>
         <v-card-actions class="justify-end px-4">
@@ -94,7 +95,9 @@
         </v-card-text>
         <v-divider></v-divider>
         <v-card-actions class="justify-end px-4">
-          <v-btn variant="outlined" @click="editDialog = false" color="grey"> Hủy </v-btn>
+          <v-btn variant="outlined" @click="editDialog = false" color="grey">
+            Hủy
+          </v-btn>
           <v-btn @click="saveEdit" color="primary">
             <v-icon left>mdi-content-save</v-icon>Lưu
           </v-btn>
@@ -108,6 +111,7 @@ import { ref, onMounted } from "vue";
 import supplyService from "../../services/supplyService";
 import Vue3Datatable from "@bhplugin/vue3-datatable";
 import "@bhplugin/vue3-datatable/dist/style.css";
+import { showNotification } from "../../utils/notification";
 
 const loading = ref(true);
 const rows = ref([]);
@@ -156,6 +160,11 @@ const saveEdit = async () => {
       editedProduct.value
     );
     fetchSupplies();
+    showNotification({
+      title: "Cập nhật thành công",
+      message: "Sản phẩm đã được cập nhật.",
+      type: "success",
+    });
     editDialog.value = false;
   } catch (error) {
     console.error("Failed to update product", error);
@@ -172,8 +181,13 @@ const openConfirmDialog = (product) => {
 const confirmDelete = async () => {
   try {
     await supplyService.deleteSupply(itemDelete.value.id);
-    fetchSupplies(); // Reload data sau khi xóa
-    confirmDialog.value = false; // Đóng dialog
+    fetchSupplies();
+    showNotification({
+      title: "Xóa thành công",
+      message: "Sản phẩm đã được xóa.",
+      type: "success",
+    });
+    confirmDialog.value = false;
   } catch (error) {
     console.error("Failed to delete product", error);
   }

@@ -44,9 +44,16 @@
                 >{{ formatCurrency(booking.deposit) }} VND</span
               >
             </p>
-            <p>
+            <p v-if="booking.bill">
+              <strong>Tổng tiền:</strong>
+              <span>{{ formatCurrency(booking.bill.total_amount) }} VND</span>
+            </p>
+            <p >
               <strong>Thanh toán:</strong>
-              <span :class="getStatusClass(booking.status)">{{
+              <span v-if="booking.bill" :class="getStatusClass(booking.status)">{{
+                booking.bill.status
+              }}</span>
+              <span v-else :class="getStatusClass(booking.status)">{{
                 booking.status
               }}</span>
             </p>
@@ -56,7 +63,7 @@
               color="light-blue"
               height="20"
               :model-value="progress"
-              striped
+              :striped="progress != 100"
             >
               <template v-slot:default="{ value }">
                 <strong>{{ Math.ceil(value) }}%</strong>
@@ -125,7 +132,12 @@
     </v-row>
     <v-row>
       <v-col>
-        <SupplyTable v-if="booking" :booking-id="bookingId" :bill="bill" />
+        <SupplyTable
+          v-if="booking"
+          :booking-id="bookingId"
+          :bill="bill"
+          @payment-success="fetchBooking"
+        />
       </v-col>
     </v-row>
   </div>
@@ -179,8 +191,8 @@ const fetchBooking = async () => {
   try {
     const response = await bookingService.getBookingById(bookingId);
     booking.value = response.data;
-    
-    bill.value = booking.value.bill; 
+
+    bill.value = booking.value.bill;
     calculateProgress();
   } catch (error) {
     console.error("Error fetching booking:", error);
@@ -320,7 +332,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   justify-content: space-around;
-  height: 487px;
+  height: 516px;
   background-color: #f9f9f9;
   border: 1px solid #ccc;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -349,7 +361,7 @@ onMounted(() => {
 .chat-box {
   display: flex;
   flex-direction: column;
-  height: 487px;
+  height: 516px;
   border-radius: 10px;
   padding: 10px;
   background-color: #f9f9f9;
@@ -360,7 +372,7 @@ onMounted(() => {
 
 .messages {
   flex-grow: 1;
-  max-height: 383px;
+  max-height: 435px;
   overflow-y: auto;
   padding: 10px;
   margin-bottom: 15px;

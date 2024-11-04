@@ -1,18 +1,28 @@
 <template>
   <div class="container-fluid">
-    <v-btn prepend-icon="mdi-menu" color="primary" @click="showMenu = true">
-      Thêm item
+    <v-btn
+      prepend-icon="mdi-menu"
+      color="primary"
+      @click="showMenu = true"
+      :hidden="props.bill.status !== 'Chưa thanh toán'"
+    >
+      Thêm tiện ích
     </v-btn>
     <v-divider></v-divider>
     <!-- Bảng hiển thị các item đã thêm -->
     <table class="table table-bordered table-responsive">
       <thead>
         <tr>
-          <th>Tên item</th>
+          <th>Tên sản phẩm</th>
           <th style="width: 10%">Số lượng</th>
           <th>Giá</th>
           <th>Tổng tiền</th>
-          <th style="width: 10%">Hành động</th>
+          <th
+            style="width: 10%"
+            :hidden="props.bill.status !== 'Chưa thanh toán'"
+          >
+            Hành động
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -28,7 +38,7 @@
           </td>
           <td>{{ formatCurrency(item.price) }} VND</td>
           <td>{{ formatCurrency(item.quantity * item.price) }} VND</td>
-          <td>
+          <td :hidden="props.bill.status !== 'Chưa thanh toán'">
             <v-icon left color="red-darken-2" @click="openDeleteDialog(item)"
               >mdi-delete</v-icon
             >
@@ -45,10 +55,8 @@
     </table>
     <v-divider></v-divider>
 
-    <div class="my-2">
-      <div>
-        
-      </div>
+    <div class="my-2" v-if="props.bill.status == 'Chưa thanh toán'">
+      <div></div>
       <h4>Thanh toán: {{ formatCurrency(billTotalAmount) }} VND</h4>
       <v-radio-group v-model="paymentMethod">
         <v-radio label="Tiền mặt" value="cash"></v-radio>
@@ -69,7 +77,6 @@
       </v-radio-group>
       <v-btn color="primary" @click="processPayment">Xác nhận thanh toán</v-btn>
     </div>
-
     <!-- Popup để hiển thị danh sách đồ uống -->
     <v-dialog v-model="showMenu" persistent max-width="600px">
       <v-card>
@@ -242,6 +249,8 @@ const props = defineProps({
     required: true,
   },
 });
+
+const emit = defineEmits(["paymentSuccess"]);
 
 const showMenu = ref(false);
 const search = ref("");
@@ -456,55 +465,59 @@ const processPayment = async () => {
   // console.log(response.data);
 
   // if (paymentMethod.value == "zalopay") {
-    
+
   // }
 
   if (paymentMethod.value === "zalopay") {
-      try {
-        const zaloPayResult = await paymentSerice.createZalopayBill(props.bill.id);
-        const qr_url = zaloPayResult.data.zalopay.order_url;
+    try {
+      const zaloPayResult = await paymentSerice.createZalopayBill(
+        props.bill.id
+      );
+      const qr_url = zaloPayResult.data.zalopay.order_url;
 
-        const popup = window.open(qr_url, "_blank", "width=500,height=600");
+      const popup = window.open(qr_url, "_blank", "width=500,height=600");
 
-        // Check if the popup was successfully created
-        if (popup) {
-          const timer = setInterval(() => {
-            if (popup.closed) {
-              clearInterval(timer);
-              showNotification({
-                title: "Thông báo",
-                message: "Thanh toán hóa đơn thành công",
-                type: "success",
-              });
-            }
-          }, 500);
-        } else {
-          console.error("Popup was blocked or failed to open.");
-        }
-      } catch (error) {
-        console.error("Error creating ZaloPay payment:", error);
+      // Check if the popup was successfully created
+      if (popup) {
+        const timer = setInterval(() => {
+          if (popup.closed) {
+            clearInterval(timer);
+            showNotification({
+              title: "Thông báo",
+              message: "Thanh toán hóa đơn thành công",
+              type: "success",
+            });
+            emit("paymentSuccess");
+          }
+        }, 500);
+      } else {
+        console.error("Popup was blocked or failed to open.");
       }
-    } else {
-      try {
-        const respone = await billService.paymentBill(props.bill.id);
-
-        console.log(respone);
-        
-        showNotification({
-          title: "Thông báo",
-          message: "Đã thanh toán thành công",
-          type: "success",
-        });
-      } catch (error) {
-        errorMessage.value = error.response.data.message;
-        // showNotification({
-        //   title: "Thông báo",
-        //   message: error.response.data.message,
-        //   type: "success",
-        // });
-        console.error("Error creating booking:", error);
-      }
+    } catch (error) {
+      console.error("Error creating ZaloPay payment:", error);
     }
+  } else {
+    try {
+      const respone = await billService.paymentBill(props.bill.id);
+
+      console.log(respone);
+
+      showNotification({
+        title: "Thông báo",
+        message: "Đã thanh toán thành công",
+        type: "success",
+      });
+      emit("paymentSuccess");
+    } catch (error) {
+      errorMessage.value = error.response.data.message;
+      // showNotification({
+      //   title: "Thông báo",
+      //   message: error.response.data.message,
+      //   type: "success",
+      // });
+      console.error("Error creating booking:", error);
+    }
+  }
 };
 // end thanh toan
 

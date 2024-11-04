@@ -67,6 +67,7 @@ import { useRouter } from "vue-router";
 import Vue3Datatable from "@bhplugin/vue3-datatable";
 import "@bhplugin/vue3-datatable/dist/style.css";
 import importReceiptService from "../../services/importReceiptService";
+import { showNotification } from "../../utils/notification";
 
 const confirmDialog = ref(false);
 const receiptToDelete = ref(null);
@@ -123,6 +124,11 @@ const confirmDelete = async () => {
       rows.value = rows.value.filter((row) => row.id !== receiptToDelete.value.id);
       confirmDialog.value = false;
       receiptToDelete.value = null;
+      showNotification({
+      title: "Xóa thành công",
+      message: "Đã tạo thành công phiếu nhập.",
+      type: "success",
+    });
     } catch (error) {
       console.error(error);
     }

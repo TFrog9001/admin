@@ -20,6 +20,26 @@ const equipmentService = {
             throw error;
         }
     },
+    async updateEquipment(id, data) {
+        try {
+            const response = await api.post(`/equipments/${id}`, data);
+            return response;
+            
+        } catch (error) {
+            console.error('Có lỗi xảy ra khi cập nhập sản phẩm', error);
+            throw error;
+        }
+    },
+
+    async deleteEquipment(id) {
+        try {
+            const response = await api.delete(`/equipments/${id}`);
+            return response;
+        } catch (error) {
+            console.error('Có lỗi xảy ra khi xóa sản phẩm', error);
+            throw error;
+        }
+    }
 }
 
 export default equipmentService;

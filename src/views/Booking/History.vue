@@ -68,8 +68,14 @@
           {{ formatCurrency(data.value.field_price) }}
         </template>
         <template #status="data">
-          <div :class="getStatusClass(data.value.status)">
+          <div v-if="data.value.status != 'Đã thanh toán'" :class="getStatusClass(data.value.status)">
             {{ data.value.status }}
+          </div>
+          <div v-else-if="data.value.bill.status == 'Chưa thanh toán'" :class="getStatusClass('Hủy')">
+            {{ data.value.bill.status }}
+          </div>
+          <div v-else-if="data.value.bill.status == 'Đã thanh toán'" :class="getStatusClass('Đã thanh toán')">
+            {{ data.value.bill.status }}
           </div>
         </template>
         <template #actions="data">

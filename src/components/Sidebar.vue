@@ -68,6 +68,7 @@
         value="receipt"
         :to="{ name: 'Receipt' }"
       ></v-list-item>
+
       <v-list-item
         prepend-icon="mdi-food-fork-drink"
         title="Đồ ăn thức uống"
@@ -79,6 +80,12 @@
         title="Trang thiết bị"
         value="equipment"
         :to="{ name: 'Equipment' }"
+      ></v-list-item>
+      <v-list-item
+        prepend-icon="mdi-cogs"
+        title="Dịch vụ thêm"
+        value="services"
+        :to="{ name: 'Services' }"
       ></v-list-item>
     </v-list>
     <template v-slot:append>
@@ -95,10 +102,10 @@
   <v-app-bar>
     <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
     <v-app-bar-title></v-app-bar-title>
-    <template v-if="$vuetify.display.mdAndUp">
+    <!-- <template v-if="$vuetify.display.mdAndUp">
       <v-btn icon="mdi-magnify" variant="text"></v-btn>
       <v-btn icon="mdi-filter" variant="text"></v-btn>
-    </template>
+    </template> -->
   </v-app-bar>
 </template>
 

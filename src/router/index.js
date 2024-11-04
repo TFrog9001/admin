@@ -16,6 +16,7 @@ import ReceiptDetail from '../views/Receipt/ReceiptDetail.vue';
 import ReceiptCreate from '../views/Receipt/ReceiptCreate.vue';
 import Equipment from '../views/Equipment/Equipment.vue';
 import History from '../views/Booking/History.vue';
+import Services from '../views/Service/Services.vue';
 
 const routes = [
     {
@@ -85,7 +86,12 @@ const routes = [
         component: Supply,
         meta: { requiresAuth: true, requiresAdmin: true },
     },
-    
+    {
+        path: '/services',
+        name: 'Services',
+        component: Services,
+        meta: { requiresAuth: true, requiresAdmin: true },
+    },
     {
         path: '/equipment',
         name: 'Equipment',
