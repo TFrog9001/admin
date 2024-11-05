@@ -4,8 +4,8 @@
       <h2 class="text-3xl">Danh sách dịch vụ</h2>
       <div class="text-end">
         <v-btn color="primary" @click="openCreateDialog">
-        <v-icon left>mdi-plus</v-icon>Thêm dịch vụ
-      </v-btn>
+          <v-icon left>mdi-plus</v-icon>Thêm dịch vụ
+        </v-btn>
       </div>
     </div>
 
@@ -24,7 +24,7 @@
         <template #id="data">
           <strong>#{{ data.value.id }}</strong>
         </template>
-        <template #price="data">
+        <template #fee="data">
           {{ formatCurrency(data.value.fee) }}
         </template>
 
@@ -196,7 +196,7 @@ const fetchServices = async () => {
 
 // Mở dialog tạo mới
 const openCreateDialog = () => {
-  newService.value = {}; 
+  newService.value = {};
   createDialog.value = true;
 };
 
@@ -204,13 +204,13 @@ const openCreateDialog = () => {
 const createService = async () => {
   try {
     await serviceService.createService(newService.value);
-    fetchServices(); 
+    fetchServices();
     showNotification({
       title: "Thêm thành công",
       message: "Đã tạo thành công dịch vụ mới.",
       type: "success",
     });
-    createDialog.value = false; 
+    createDialog.value = false;
   } catch (error) {
     console.error("Failed to create service", error);
   }
@@ -218,7 +218,7 @@ const createService = async () => {
 
 // Mở dialog sửa
 const openEdit = (service) => {
-  editedService.value = { ...service }; 
+  editedService.value = { ...service };
   editDialog.value = true;
 };
 
@@ -235,7 +235,7 @@ const saveEdit = async () => {
       message: "Dịch vụ đã được cập nhật.",
       type: "success",
     });
-    editDialog.value = false; 
+    editDialog.value = false;
   } catch (error) {
     console.error("Failed to update service", error);
   }
@@ -257,7 +257,7 @@ const confirmDelete = async () => {
       message: "Dịch vụ đã được xóa.",
       type: "success",
     });
-    confirmDialog.value = false; 
+    confirmDialog.value = false;
   } catch (error) {
     console.error("Failed to delete service", error);
   }
@@ -265,11 +265,12 @@ const confirmDelete = async () => {
 
 // Định dạng tiền tệ
 const formatCurrency = (amount) => {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    minimumFractionDigits: 0,
-  }).format(amount);
+  return (
+    new Intl.NumberFormat("vi-VN", {
+      style: "decimal",
+      minimumFractionDigits: 0,
+    }).format(amount) + " VND"
+  );
 };
 
 onMounted(() => {

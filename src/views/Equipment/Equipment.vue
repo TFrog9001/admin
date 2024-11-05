@@ -16,7 +16,7 @@
         sortColumn="created_at"
         sortDirection="desc"
         skin="bh-table-striped bh-table-hover bh-table-bordered"
-      > 
+      >
         <template #id="data">
           <strong>#{{ data.value.id }}</strong>
         </template>
@@ -102,6 +102,8 @@ import equipmentService from "../../services/equipmentService";
 import Vue3Datatable from "@bhplugin/vue3-datatable";
 import "@bhplugin/vue3-datatable/dist/style.css";
 
+import { showNotification } from "../../utils/notification";
+
 const loading = ref(true);
 const rows = ref([]);
 const cols = ref([
@@ -146,6 +148,11 @@ const saveEdit = async () => {
       editedProduct.value
     );
     fetchEquipments();
+    showNotification({
+      title: "Cập nhật thành công",
+      message: "Thiết bị đã được cập nhật.",
+      type: "success",
+    });
     editDialog.value = false;
   } catch (error) {
     console.error("Failed to update product", error);
@@ -161,6 +168,11 @@ const confirmDelete = async () => {
   try {
     await equipmentService.deleteEquipment(itemDelete.value.id);
     fetchEquipments();
+    showNotification({
+      title: "Xóa thành công",
+      message: "Thiết bị đã được xóa.",
+      type: "success",
+    });
     confirmDialog.value = false;
   } catch (error) {
     console.error("Failed to delete product", error);
@@ -175,7 +187,6 @@ const formatCurrency = (amount) => {
     }).format(amount) + " VND"
   );
 };
-
 
 onMounted(() => {
   fetchEquipments();

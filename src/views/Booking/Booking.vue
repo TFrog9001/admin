@@ -1,5 +1,5 @@
 <template>
-  <h1 class="text-h4 text-center mb-6">Soccer Field Schedule</h1>
+  <h1 class="text-h4 text-center mb-6">Lịch Sân Bóng</h1>
 
   <v-card class="mb-4 pa-4">
     <v-row>
@@ -34,25 +34,7 @@
           variant="outlined"
         ></v-select>
       </v-col>
-      <!-- <v-col cols="12" sm="4">
-        <v-card class="mb-4 pa-4">
-          <v-row>
-            <v-col cols="12">
-              <v-checkbox-group
-                v-model="selectedStatuses"
-                label="Filter by Booking Status"
-                row
-                mandatory
-              >
-                <v-checkbox value="Đã đặt" label="Đã đặt"></v-checkbox>
-                <v-checkbox value="Đã cọc" label="Đã cọc"></v-checkbox>
-                <v-checkbox value="Đã thanh toán" label="Đã thanh toán"></v-checkbox>
-                <v-checkbox value="Hủy" label="Hủy"></v-checkbox>
-              </v-checkbox-group>
-            </v-col>
-          </v-row>
-        </v-card>
-      </v-col> -->
+
     </v-row>
     <v-row>
       <v-col cols="12" class="d-flex justify-space-between">
@@ -492,6 +474,7 @@ import userService from "../../services/userService";
 import paymentService from "../../services/paymentService";
 import { VDateInput } from "vuetify/labs/VDateInput";
 import { showNotification } from "../../utils/notification";
+// import BookingDialog from "./BookingDialog.vue";
 
 const router = useRouter();
 
@@ -650,69 +633,6 @@ const resetBookings = () => {
     {}
   );
 };
-
-// Fetch bookings
-// const fetchBookings = async () => {
-//   resetBookings();
-//   const isFailedBooking = selectedBookingType.value === "failed";
-//   if (selectedField.value) {
-//     const datas = await Promise.all(
-//       weekDays.value.map((day) =>
-//         isFailedBooking
-//           ? bookingService.getFailBookings(day.date)
-//           : bookingService.getBookings(day.date)
-//       )
-//     );
-//     for (const data of datas) {
-//       data.forEach((booking) => {
-//         if (booking.field_id === selectedField.value) {
-//           const startIndex = timeSlots.findIndex(
-//             (time) => time === booking.start_time.slice(0, 5)
-//           );
-//           const endIndex = timeSlots.findIndex(
-//             (time) => time === booking.end_time.slice(0, 5)
-//           );
-
-//           if (startIndex !== -1 && endIndex !== -1) {
-//             for (let i = startIndex; i < endIndex; i++) {
-//               if (!bookings.value[selectedField.value][day.date]) {
-//                 bookings.value[selectedField.value][day.date] = Array(
-//                   timeSlots.length
-//                 ).fill(null);
-//               }
-//               bookings.value[selectedField.value][day.date][i] = booking;
-//             }
-//           }
-//         }
-//       });
-//     }
-//   } else {
-//     const { data } = await (isFailedBooking
-//       ? bookingService.getFailBookings(getLocalDate(selectedDate.value))
-//       : bookingService.getBookings(getLocalDate(selectedDate.value)));
-//     data.forEach((booking) => {
-//       const fieldId = booking.field_id;
-//       const startIndex = timeSlots.findIndex(
-//         (time) => time === booking.start_time.slice(0, 5)
-//       );
-//       const endIndex = timeSlots.findIndex(
-//         (time) => time === booking.end_time.slice(0, 5)
-//       );
-
-//       if (startIndex !== -1 && endIndex !== -1) {
-//         for (let i = startIndex; i < endIndex; i++) {
-//           if (!bookings.value[fieldId][getLocalDate(selectedDate.value)]) {
-//             bookings.value[fieldId][getLocalDate(selectedDate.value)] = Array(
-//               timeSlots.length
-//             ).fill(null);
-//           }
-//           bookings.value[fieldId][getLocalDate(selectedDate.value)][i] =
-//             booking;
-//         }
-//       }
-//     });
-//   }
-// };
 
 const fetchBookings = async () => {
   resetBookings();
