@@ -34,7 +34,6 @@
           variant="outlined"
         ></v-select>
       </v-col>
-
     </v-row>
     <v-row>
       <v-col cols="12" class="d-flex justify-space-between">
@@ -354,7 +353,7 @@
               </v-text-field>
             </v-col>
           </v-row>
-          <v-row>
+          <v-row class="mb-2">
             <v-combobox
               v-model="bookingDetails.user.phone"
               :items="users"
@@ -386,6 +385,36 @@
               variant="outlined"
             ></v-text-field>
           </v-row>
+
+          <v-row>
+            <v-col>
+              <v-btn
+                prepend-icon="mdi mdi-cogs"
+                color="primary"
+                variant="outlined"
+                width="100%"
+                @click="isBookingDialogOpen = true"
+                >Chọn Dịch Vụ</v-btn
+              >
+            </v-col>
+          </v-row>
+          <div class="my-4" v-if="selectedServices.length > 0">
+            <v-row class="ml-1">Dịch vụ đã chọn:</v-row>
+
+            <v-row class="my-3" v-for="service in selectedServices">
+              <v-col cols="1" class="mr-3">
+                <v-avatar
+                  :image="
+                    service.staffAvatar ||
+                    'https://cdn3.iconfinder.com/data/icons/business-avatar-1/512/3_avatar-512.png'
+                  "
+                ></v-avatar>
+              </v-col>
+              <v-col>
+                {{ service.staffName + " - " + service.serviceName }}
+              </v-col>
+            </v-row>
+          </div>
           <v-row>
             <v-col cols="12">
               <v-radio-group v-model="bookingDetails.paymentMethod" row>
@@ -463,6 +492,14 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <!-- Dialog service -->
+  <BookingServices
+    :services="services"
+    :isDialogOpen="isBookingDialogOpen"
+    @select="handleSelectedServices"
+    @close="isBookingDialogOpen = false"
+  />
 </template>
 
 <script setup>
@@ -474,7 +511,8 @@ import userService from "../../services/userService";
 import paymentService from "../../services/paymentService";
 import { VDateInput } from "vuetify/labs/VDateInput";
 import { showNotification } from "../../utils/notification";
-// import BookingDialog from "./BookingDialog.vue";
+import BookingServices from "./BookingServices.vue";
+import serviceService from "../../services/serviceService";
 
 const router = useRouter();
 
@@ -483,6 +521,9 @@ const users = ref([]);
 const fields = ref([]);
 const bookings = ref({});
 const isDialogOpen = ref(false);
+const isBookingDialogOpen = ref(false);
+const services = ref([]);
+const selectedServices = ref([]);
 const selectedSlot = ref(null);
 const selectedDate = ref(new Date());
 const selectedDateForm = ref(new Date());
@@ -528,7 +569,7 @@ const formatCurrency = (value) => {
 };
 
 // Calculate end time and costs
-const calculateEndTime = (duration) => {
+const calculateEndTime = () => {
   errorMessage.value = "";
   const selectedField = fields.value.find(
     (field) => field.id === bookingDetails.value.field
@@ -576,6 +617,36 @@ const calculateEndTime = (duration) => {
     const priceForThisSlot = (minutesBooked / 60) * parseFloat(price.price);
     totalPrice += priceForThisSlot;
   }
+
+  // Kiểm tra start_time và end_time có hợp lệ trước khi chia
+  const startTimeValid =
+    bookingDetails.value.start_time &&
+    bookingDetails.value.start_time.includes(":");
+  const endTimeValid =
+    bookingDetails.value.end_time &&
+    bookingDetails.value.end_time.includes(":");
+
+  if (!startTimeValid || !endTimeValid) {
+    errorMessage.value = "Invalid start time or end time.";
+    return;
+  }
+
+  const startMinutes = bookingDetails.value.start_time
+    .split(":")
+    .map(Number)
+    .reduce((acc, val, index) => acc + val * (index === 0 ? 60 : 1), 0);
+  const endMinutes = bookingDetails.value.end_time
+    .split(":")
+    .map(Number)
+    .reduce((acc, val, index) => acc + val * (index === 0 ? 60 : 1), 0);
+
+  const duration = (endMinutes - startMinutes) / 60;
+
+  selectedServices.value.forEach((service) => {
+    if (service.fee) {
+      totalPrice += duration * service.fee;
+    }
+  });
 
   bookingDetails.value.cost = formatCurrency(totalPrice);
   bookingDetails.value.deposit = formatCurrency(totalPrice * 0.4);
@@ -692,8 +763,6 @@ const fetchBookings = async () => {
       // Lấy mảng từ thuộc tính data
       const data = response.data;
 
-      console.log(data);
-
       if (!Array.isArray(data)) {
         console.error("Dữ liệu mong đợi là một mảng nhưng nhận được:", data);
         return; // Thoát nếu dữ liệu không phải là mảng
@@ -726,10 +795,25 @@ const fetchBookings = async () => {
   }
 };
 
+const fetchServices = async () => {
+  // Giả sử bạn có một service để lấy danh sách dịch vụ
+  const response = await serviceService.getServices();
+  services.value = response.data;
+};
+
+const handleSelectedServices = (selected) => {
+  console.log("Dịch vụ và nhân viên đã chọn:", selected);
+  // Xử lý thông tin đã chọn
+  selectedServices.value = selected;
+  console.log(selectedServices.value);
+  calculateEndTime();
+};
+
 // Handle booking modal open
 const handleOpenBooking = (fieldId, index, date) => {
   errorMessage.value = "";
   fetchCustomers();
+  selectedServices.value = [];
   selectedDateForm.value = selectedDate.value;
   selectedSlot.value = { fieldId, index, date };
   bookingDetails.value = {
@@ -767,8 +851,14 @@ const handleBooking = async () => {
       deposit: bookingDetails.value.cost * 0.4,
       payment_method: bookingDetails.value.paymentMethod,
       payment_type: bookingDetails.value.paymentType,
+      services: selectedServices.value.map((service) => ({
+        service_id: service.service_id,
+        staff_id: service.staff_id,
+      })),
     };
 
+    console.log(bookingData);
+    
     if (bookingDetails.value.paymentType === "zalopay") {
       try {
         console.log(bookingData);
@@ -965,6 +1055,7 @@ watch([selectedDate, selectedField], () => {
 onMounted(() => {
   fetchFields();
   fetchBookings();
+  fetchServices();
 });
 </script>
 

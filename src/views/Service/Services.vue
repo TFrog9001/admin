@@ -95,6 +95,16 @@
             dense
             variant="outlined"
           ></v-text-field>
+          <v-select
+            v-model="editedService.role_id"
+            :items="roles"
+            item-title="role_name"
+            item-value="id"
+            label="Vai trò"
+            dense
+            variant="outlined"
+            class="mb-4"
+          ></v-select>
         </v-card-text>
         <v-divider></v-divider>
         <v-card-actions class="justify-end px-4">
@@ -138,6 +148,17 @@
             dense
             variant="outlined"
           ></v-text-field>
+          <v-select
+            v-model="newService.role_id"
+            :items="roles"
+            item-title="role_name"
+            item-value="id"
+            label="Vai trò"
+            dense
+            variant="outlined"
+            class="mb-4"
+          >
+          </v-select>
         </v-card-text>
         <v-divider></v-divider>
         <v-card-actions class="justify-end px-4">
@@ -160,11 +181,14 @@ import Vue3Datatable from "@bhplugin/vue3-datatable";
 import "@bhplugin/vue3-datatable/dist/style.css";
 import { showNotification } from "../../utils/notification";
 
+const roles = ref([]);
+
 const loading = ref(true);
 const rows = ref([]);
 const cols = ref([
   { field: "id", title: "ID", type: "number", width: "10%", sortable: false },
   { field: "service", title: "Tên dịch vụ", width: "30%" },
+  { field: "role.role_name", title: "Thuộc nhóm", width: "30%" },
   { field: "description", title: "Mô tả", width: "40%" },
   { field: "fee", title: "Giá dịch vụ" },
   {
@@ -273,8 +297,19 @@ const formatCurrency = (amount) => {
   );
 };
 
+const fetchRoles = async () => {
+  try {
+    const response = await serviceService.getRoles();
+
+    roles.value = response.data;
+  } catch (error) {
+    console.error("Failed", error);
+  }
+};
+
 onMounted(() => {
-  fetchServices(); // Tải danh sách dịch vụ khi component được mount
+  fetchRoles();
+  fetchServices();
 });
 </script>
 

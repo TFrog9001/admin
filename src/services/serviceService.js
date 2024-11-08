@@ -1,8 +1,14 @@
 import api from "../axios/api";
 
 const serviceService = {
+
+    async getRoles() {
+        const response = await api.get(`/roles`);
+        return response;
+    },
+
     async getServices() {
-        try {        
+        try {
             const response = await api.get(`/services`);
             return response;
         } catch (error) {
@@ -12,7 +18,7 @@ const serviceService = {
     },
 
     async createService(data) {
-        try {        
+        try {
             const response = await api.post(`/services`, data);
             return response;
         } catch (error) {
@@ -25,7 +31,7 @@ const serviceService = {
         try {
             const response = await api.post(`/services/${id}`, data);
             return response;
-            
+
         } catch (error) {
             console.error('Có lỗi xảy ra khi cập nhập dịch vụ', error);
             throw error;
