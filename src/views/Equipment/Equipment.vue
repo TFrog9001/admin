@@ -1,7 +1,7 @@
 <template>
   <div class="container-fluid">
     <div class="flex items-center justify-between mb-5">
-      <h2 class="text-3xl">Danh sách đồ ăn thức uống</h2>
+      <h2 class="text-3xl">Danh sách thiết bị</h2>
       <div class="text-end"></div>
     </div>
 
@@ -113,7 +113,7 @@ const cols = ref([
   { field: "quantity", title: "Số lượng", type: "number", width: "20%" },
   {
     field: "actions",
-    title: "Actions",
+    title: "Thao tác",
     width: "5%",
     sort: false,
     filter: false,

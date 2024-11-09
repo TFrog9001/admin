@@ -187,14 +187,14 @@ const loading = ref(true);
 const rows = ref([]);
 const cols = ref([
   { field: "id", title: "ID", type: "number", width: "10%", sortable: false },
-  { field: "service", title: "Tên dịch vụ", width: "30%" },
-  { field: "role.role_name", title: "Thuộc nhóm", width: "30%" },
-  { field: "description", title: "Mô tả", width: "40%" },
+  { field: "service", title: "Tên dịch vụ", width: "20%" },
+  { field: "role.role_name", title: "Thuộc nhóm", width: "20%" },
+  { field: "description", title: "Mô tả", width: "30%" },
   { field: "fee", title: "Giá dịch vụ" },
   {
     field: "actions",
-    title: "Hành động",
-    width: "5%",
+    title: "Thao tác",
+    width: "10%",
     sort: false,
     filter: false,
     cellClass: "bh-sticky bh-right-0 bh-bg-blue-light action-cell",

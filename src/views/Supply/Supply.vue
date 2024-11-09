@@ -123,8 +123,8 @@ const cols = ref([
   { field: "price", title: "Giá bán" },
   {
     field: "actions",
-    title: "Actions",
-    width: "5%",
+    title: "Thao tác",
+    width: "10%",
     sort: false,
     filter: false,
     cellClass: "bh-sticky bh-right-0 bh-bg-blue-light action-cell",

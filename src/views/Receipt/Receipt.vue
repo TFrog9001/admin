@@ -83,7 +83,7 @@ const cols = ref([
   { field: "created_at", title: "Ngày lập", type: "date" , width: "10%"},
   {
     field: "actions",
-    title: "Actions",
+    title: "Thao tác",
     width: "10%",
     sort: false,
     filter: false,
