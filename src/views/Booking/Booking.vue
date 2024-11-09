@@ -887,6 +887,7 @@ const handleBooking = async () => {
           console.error("Popup was blocked or failed to open.");
         }
       } catch (error) {
+        errorMessage.value = error.response.data.message;
         console.error("Error creating ZaloPay payment:", error);
       }
     } else {
