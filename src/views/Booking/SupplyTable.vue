@@ -21,7 +21,7 @@
             style="width: 10%"
             :hidden="props.bill.status !== 'Chưa thanh toán'"
           >
-            Hành động
+            Thao tác
           </th>
         </tr>
       </thead>
@@ -287,6 +287,7 @@ const confirmDelete = async () => {
       type: "success",
     });
     deleteDialog.value = false;
+    emit("updateBooking");
   } catch (error) {
     console.error("Lỗi khi xóa:", error);
     showNotification({
@@ -396,18 +397,22 @@ const confirmItems = async () => {
 
     console.log(response.data);
 
-    billTotalAmount.value += Math.floor(
-      tempItems.value.reduce((total, item) => {
-        return total + item.quantity * item.price;
-      }, 0)
+    const additionalAmount = tempItems.value.reduce((total, item) => {
+      return total + item.quantity * item.price;
+    }, 0);
+
+    // Cộng dồn vào tổng tiền hiện tại và làm tròn để loại bỏ sai số thập phân
+    billTotalAmount.value = Math.round(
+      billTotalAmount.value + additionalAmount
     );
+    console.log(billTotalAmount.value);
 
     showNotification({
       title: "Thông báo",
       message: response.data.message,
       type: "success",
     });
-
+    emit("updateBooking");
     closeMenu();
   } catch (error) {
     console.error("Có lỗi xảy ra khi thêm sản phẩm:", error);
@@ -521,9 +526,17 @@ const processPayment = async () => {
 };
 // end thanh toan
 
+watch(
+  () => props.bill.total_amount,
+  (newTotal) => {
+    billTotalAmount.value = newTotal;
+  }
+);
+
 onMounted(() => {
   addedItems.value = props.bill.supplies;
   console.log(props.bill.supplies);
+  console.log(props.bill);
 });
 </script>
 

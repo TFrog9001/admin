@@ -213,7 +213,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "../../stores/auth";
 import importReceiptService from "../../services/importReceiptService";
@@ -226,7 +226,9 @@ const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 
-const isEditMode = (route.params.id && route.params.id !== "create") ? true : false;
+const isEditMode = ref(
+  route.params.id && route.params.id !== "create" ? true : false
+);
 
 const newReceipt = ref({
   user_id: authStore.user.id,
@@ -328,7 +330,7 @@ const addItem = async () => {
 
   calculateTotalAmount();
 
-  newItem.value.item_name = "";
+  // newItem.value.item_name = "";
   newItem.value.serial_number = "";
 };
 
@@ -409,33 +411,42 @@ const updateReceipt = async () => {
   cleanErrors();
 };
 
+const loadReceiptData = async () => {
+  try {
+    const response = await importReceiptService.getReceiptById(route.params.id);
+    newReceipt.value = {
+      user_id: response.data.user.id,
+      user_name: response.data.user.name,
+      receiper_name: response.data.receiper_name,
+      items: response.data.items,
+    };
+    addedItems.value = response.data.items;
+    totalAmount.value = response.data.total_amount;
+  } catch (error) {
+    showNotification({
+      title: "Thông báo",
+      message: "Có lỗi khi tải dữ liệu phiếu nhập",
+      type: "error",
+    });
+  }
+};
+
 onMounted(async () => {
-  console.log(isEditMode);
-  
-  if (isEditMode) {
-    try {
-      const response = await importReceiptService.getReceiptById(
-        route.params.id
-      );
-      newReceipt.value = {
-        user_id: response.data.user.id,
-        user_name: response.data.user.name,
-        receiper_name: response.data.receiper_name,
-        items: response.data.items,
-      };
-      console.log(newReceipt.value);
-      
-      addedItems.value = response.data.items;
-      totalAmount.value = response.data.total_amount;
-    } catch (error) {
-      showNotification({
-        title: "Thông báo",
-        message: "Có lỗi khi tải dữ liệu phiếu nhập",
-        type: "error",
-      });
-    }
+  if (isEditMode.value) {
+    await loadReceiptData();
   }
 });
+
+// Theo dõi sự thay đổi của route.params.id
+watch(
+  () => route.params.id,
+  async (newId) => {
+    isEditMode.value = newId && newId !== "create";
+    if (isEditMode.value) {
+      await loadReceiptData();
+    }
+  }
+);
 </script>
 
 <style scoped>

@@ -48,11 +48,13 @@
               <strong>Tổng tiền:</strong>
               <span>{{ formatCurrency(booking.bill.total_amount) }} VND</span>
             </p>
-            <p >
+            <p>
               <strong>Thanh toán:</strong>
-              <span v-if="booking.bill" :class="getStatusClass(booking.status)">{{
-                booking.bill.status
-              }}</span>
+              <span
+                v-if="booking.bill"
+                :class="getStatusClass(booking.status)"
+                >{{ booking.bill.status }}</span
+              >
               <span v-else :class="getStatusClass(booking.status)">{{
                 booking.status
               }}</span>
@@ -131,12 +133,46 @@
       </v-col>
     </v-row>
     <v-row>
+      <v-col cols="5">
+        <div v-if="services && services.length" class="service-table">
+          <h4 class="mb-3">Dịch vụ đã chọn</h4>
+          <table class="table table-bordered table-responsive">
+            <thead>
+              <tr>
+                <th>Dịch vụ</th>
+                <th>Mô tả</th>
+                <th>Nhân viên</th>
+                <th>Phí</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="service in services" :key="service.id">
+                <td>{{ service.service.service }}</td>
+                <td>{{ service.service.description }}</td>
+                <td>
+                  <v-avatar
+                    :image="
+                      service.staff.avatar ||
+                      'https://cdn3.iconfinder.com/data/icons/business-avatar-1/512/3_avatar-512.png'
+                    "
+                  ></v-avatar>
+                  {{ service.staff.name }}
+                </td>
+                <td>{{ formatCurrency(service.fee) }} VND</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </v-col>
+    </v-row>
+    <v-row>
       <v-col>
         <SupplyTable
           v-if="booking"
           :booking-id="bookingId"
           :bill="bill"
           @payment-success="fetchBooking"
+          @updateBooking="fetchBooking"
         />
       </v-col>
     </v-row>
@@ -156,6 +192,7 @@ const bookingId = route.params.id;
 
 const booking = ref(null);
 const bill = ref(null);
+const services = ref(null);
 const messages = ref([]);
 const newMessage = ref("");
 const hoveredMessageIndex = ref(null);
@@ -193,6 +230,8 @@ const fetchBooking = async () => {
     booking.value = response.data;
 
     bill.value = booking.value.bill;
+
+    services.value = booking.value.bill.services;
     calculateProgress();
   } catch (error) {
     console.error("Error fetching booking:", error);
