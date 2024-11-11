@@ -1,8 +1,10 @@
 import axios from 'axios';
 import { useAuthStore } from '../stores/auth';
 
+const baseURL = `${import.meta.env.VITE_BASE_URL}/api`;
+
 const api = axios.create({
-    baseURL: 'http://172.16.7.133:8000/api',
+    baseURL: baseURL,
     // baseURL: 'http://127.0.0.1:8000/api',
 });
 

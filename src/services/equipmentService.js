@@ -2,7 +2,7 @@ import api from "../axios/api";
 
 const equipmentService = {
     async getEquipmentBySN(sn) {
-        try {        
+        try {
             const response = await api.get(`/equipments/${sn}`)
             return response;
         } catch (error) {
@@ -12,7 +12,7 @@ const equipmentService = {
     },
 
     async getEquipments() {
-        try {        
+        try {
             const response = await api.get(`/equipments`)
             return response;
         } catch (error) {
@@ -22,9 +22,13 @@ const equipmentService = {
     },
     async updateEquipment(id, data) {
         try {
-            const response = await api.post(`/equipments/${id}`, data);
+            const response = await api.post(`/equipments/${id}`, data, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
             return response;
-            
+
         } catch (error) {
             console.error('Có lỗi xảy ra khi cập nhập sản phẩm', error);
             throw error;

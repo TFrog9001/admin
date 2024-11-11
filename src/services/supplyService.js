@@ -2,7 +2,7 @@ import api from "../axios/api";
 
 const supplyService = {
     async getSupplyBySN(sn) {
-        try {        
+        try {
             const response = await api.get(`/supplies/${sn}`)
             return response;
         } catch (error) {
@@ -12,7 +12,7 @@ const supplyService = {
     },
 
     async getSupplies() {
-        try {        
+        try {
             const response = await api.get(`/supplies`);
             return response;
         } catch (error) {
@@ -23,9 +23,13 @@ const supplyService = {
 
     async updateSupply(id, data) {
         try {
-            const response = await api.post(`/supplies/${id}`, data);
+            const response = await api.post(`/supplies/${id}`, data, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
             return response;
-            
+
         } catch (error) {
             console.error('Có lỗi xảy ra khi cập nhập sản phẩm', error);
             throw error;

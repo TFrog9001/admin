@@ -20,10 +20,26 @@
         <template #id="data">
           <strong>#{{ data.value.id }}</strong>
         </template>
+        <template #name="data">
+          <div
+            class="d-flex justify-content-between align-items-center"
+            style="height: 100%"
+          >
+            <span class="text-start">{{ data.value.name }}</span>
+            <img
+              v-if="data.value.image"
+              :src="`http://127.0.0.1:8000/storage/${data.value.image}`"
+              alt="Product Image"
+              width="50"
+              height="50"
+              class="ms-2"
+            />
+          </div>
+        </template>
+
         <template #price="data">
           {{ formatCurrency(data.value.price) }}
         </template>
-
         <template #actions="data">
           <div class="flex gap-4">
             <v-icon color="success" @click="openEdit(data.value)">
@@ -71,6 +87,7 @@
         </v-card-title>
         <v-divider></v-divider>
         <v-card-text class="pt-4 pb-8">
+          <!-- Trường tên sản phẩm -->
           <v-text-field
             v-model="editedProduct.name"
             label="Tên sản phẩm"
@@ -78,6 +95,8 @@
             variant="outlined"
             class="mb-4"
           ></v-text-field>
+
+          <!-- Trường số serial -->
           <v-text-field
             v-model="editedProduct.serial_number"
             label="Số serial"
@@ -85,6 +104,8 @@
             variant="outlined"
             class="mb-4"
           ></v-text-field>
+
+          <!-- Trường giá bán -->
           <v-text-field
             v-model="editedProduct.price"
             label="Giá bán"
@@ -92,6 +113,36 @@
             dense
             variant="outlined"
           ></v-text-field>
+
+          <!-- Hiển thị hình ảnh hiện tại và trường upload ảnh mới -->
+          <div class="mt-4">
+            <label>Hình ảnh hiện tại:</label>
+            <img
+              v-if="editedProduct.image && !newImageUrl"
+              :src="`http://127.0.0.1:8000/storage/${editedProduct.image}`"
+              alt="Current Image"
+              width="100"
+              height="100"
+              class="mb-4"
+              style="object-fit: contain; border-radius: 4px;"
+            />
+            <img
+              v-if="newImageUrl"
+              :src="newImageUrl"
+              alt="New Image Preview"
+              width="100"
+              height="100"
+              class="mb-4"
+            />
+            <v-file-input
+              label="Upload hình ảnh mới"
+              prepend-icon="mdi-camera"
+              dense
+              variant="outlined"
+              @change="previewImage"
+              accept="image/*"
+            ></v-file-input>
+          </div>
         </v-card-text>
         <v-divider></v-divider>
         <v-card-actions class="justify-end px-4">
@@ -106,6 +157,7 @@
     </v-dialog>
   </div>
 </template>
+
 <script setup>
 import { ref, onMounted } from "vue";
 import supplyService from "../../services/supplyService";
@@ -117,10 +169,10 @@ const loading = ref(true);
 const rows = ref([]);
 const cols = ref([
   { field: "id", title: "ID", type: "number", width: "10%", sortable: false },
-  { field: "serial_number", title: "Số serial", width: "30%" },
+  { field: "serial_number", title: "Số serial", width: "10%" },
   { field: "name", title: "Tên sản phẩm", width: "20%" },
-  { field: "quantity", title: "Số lượng", type: "number", width: "20%" },
-  { field: "price", title: "Giá bán" },
+  { field: "quantity", title: "Số lượng", type: "number", width: "10%" },
+  { field: "price", title: "Giá bán", width: "15%" },
   {
     field: "actions",
     title: "Thao tác",
@@ -132,6 +184,8 @@ const cols = ref([
 ]);
 
 const editedProduct = ref({});
+const newImageFile = ref(null); // File ảnh mới
+const newImageUrl = ref(null); // URL tạm thời của ảnh mới để preview
 const confirmDialog = ref(false);
 const editDialog = ref(false);
 const itemDelete = ref(null);
@@ -149,16 +203,34 @@ const fetchSupplies = async () => {
 // Mở dialog sửa
 const openEdit = (product) => {
   editedProduct.value = { ...product };
+  newImageUrl.value = null; // Đặt lại URL tạm thời khi mở dialog mới
+  newImageFile.value = null; // Đặt lại file ảnh mới khi mở dialog mới
   editDialog.value = true;
+};
+
+// Hàm hiển thị preview ảnh mới
+const previewImage = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    newImageFile.value = file;
+    newImageUrl.value = URL.createObjectURL(file); // Hiển thị ảnh tạm thời
+  }
 };
 
 // Lưu chỉnh sửa sản phẩm
 const saveEdit = async () => {
   try {
-    await supplyService.updateSupply(
-      editedProduct.value.id,
-      editedProduct.value
-    );
+    const formData = new FormData();
+    formData.append("name", editedProduct.value.name);
+    formData.append("serial_number", editedProduct.value.serial_number);
+    formData.append("price", editedProduct.value.price);
+
+    // Kiểm tra xem có file ảnh mới không và thêm vào formData
+    if (newImageFile.value) {
+      formData.append("image", newImageFile.value);
+    }
+
+    await supplyService.updateSupply(editedProduct.value.id, formData);
     fetchSupplies();
     showNotification({
       title: "Cập nhật thành công",
@@ -166,6 +238,8 @@ const saveEdit = async () => {
       type: "success",
     });
     editDialog.value = false;
+    newImageUrl.value = null; // Reset ảnh tạm thời sau khi lưu
+    newImageFile.value = null; // Reset file ảnh mới sau khi lưu
   } catch (error) {
     console.error("Failed to update product", error);
   }
@@ -191,18 +265,6 @@ const confirmDelete = async () => {
   } catch (error) {
     console.error("Failed to delete product", error);
   }
-};
-
-const formatDateTime = (date) => {
-  const d = new Date(date);
-  const hours = d.getHours().toString().padStart(2, "0");
-  const minutes = d.getMinutes().toString().padStart(2, "0");
-  const formattedDate = new Intl.DateTimeFormat("en-GB", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(d);
-  return `${hours}:${minutes} ${formattedDate.replace(/\//g, "-")}`;
 };
 
 const formatCurrency = (amount) => {
