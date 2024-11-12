@@ -23,10 +23,15 @@ const importReceiptService = {
     },
     async createReceipt(data) {
         try {
-            const response = await api.post(`/import-receipts`, data);
+
+            const response = await api.post('/import-receipts', data, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
             return response;
         } catch (error) {
-            console.error('Có lỗi xảy ra khi lấy phiếu nhập', error);
+            console.error('Có lỗi khi tạo phiếu nhập', error);
             throw error;
         }
     },

@@ -130,6 +130,28 @@
           </div>
         </div>
 
+        <div class="mb-3">
+          <label for="productImage" class="form-label">Hình ảnh sản phẩm</label>
+          <div v-if="newItem.image">
+            <!-- Hiển thị hình ảnh nếu có -->
+            <img
+              :src="newItem.image"
+              alt="Hình ảnh sản phẩm"
+              class="img-thumbnail"
+              style="max-width: 100%; height: auto"
+            />
+          </div>
+          <div v-else>
+            <!-- Trường tải ảnh nếu chưa có ảnh -->
+            <input
+              type="file"
+              @change="handleImageUpload"
+              id="productImage"
+              class="form-control"
+            />
+          </div>
+        </div>
+
         <!-- Nút thêm sản phẩm -->
         <v-btn
           prepend-icon="mdi-plus-box-multiple-outline"
@@ -167,6 +189,13 @@
               {{ item.serial_number }}
             </td>
             <td>
+              <img
+                v-if="item.image"
+                :src="getFullImageUrl(item.image)"
+                alt="Hình ảnh sản phẩm"
+                class="img-thumbnail"
+                style="max-width: 100px; height: auto"
+              />
               {{ item.item_name }}
             </td>
             <td>
@@ -270,19 +299,28 @@ const calculateTotalAmount = () => {
   }, 0);
 };
 
+const isExistingProduct = ref(false);
+
+const handleImageUpload = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    newItem.value.imageFile = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      newItem.value.image = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
 const addItem = async () => {
-  // Reset lỗi
   cleanErrors();
 
   if (!newItem.value.serial_number) {
     errors.value.serial_number = "Serial number là bắt buộc.";
   }
 
-  if (
-    newItem.value.price === null ||
-    newItem.value.price <= 0 ||
-    newItem.value.price === ""
-  ) {
+  if (newItem.value.price === null || newItem.value.price <= 0) {
     errors.value.price = "Giá nhập phải lớn hơn 0.";
   }
 
@@ -296,15 +334,23 @@ const addItem = async () => {
       );
     }
 
-    // Nếu serial_number tồn tại, gán tên sản phẩm từ API
-    if (response && response.data) {
+    if (response && response.data && response.data != []) {
       newItem.value.item_name = response.data[0].name;
+
+      newItem.value.image = `http://127.0.0.1:8000/storage/${
+        response.data[0].image || ""
+      }`;
+      isExistingProduct.value = true;
+    } else {
+      isExistingProduct.value = false;
+      newItem.value.image = null; // Xóa ảnh nếu sản phẩm là mới
     }
   } catch (error) {}
 
   if (!newItem.value.item_name) {
     errors.value.item_name = "Tên sản phẩm là bắt buộc.";
   }
+
   if (
     !newItem.value.item_name ||
     !newItem.value.serial_number ||
@@ -313,25 +359,24 @@ const addItem = async () => {
     return;
   }
 
-  // Tìm kiếm sản phẩm có serial_number trùng
   const existingItem = addedItems.value.find(
     (item) =>
       item.serial_number === newItem.value.serial_number &&
       item.item_type === newItem.value.item_type
   );
 
-  // Nếu đã tồn tại sản phẩm với serial_number trùng, tăng số lượng
   if (existingItem) {
     existingItem.quantity += newItem.value.quantity;
   } else {
-    // Thêm sản phẩm mới vào danh sách
     addedItems.value.push({ ...newItem.value });
   }
 
   calculateTotalAmount();
 
-  // newItem.value.item_name = "";
   newItem.value.serial_number = "";
+  newItem.value.image = null;
+  newItem.value.imageFile = null;
+  isExistingProduct.value = false;
 };
 
 const removeItem = (index) => {
@@ -340,7 +385,6 @@ const removeItem = (index) => {
 };
 
 const createReceipt = async () => {
-  // Kiểm tra nếu thiếu tên nhà cung cấp
   if (!newReceipt.value.receiper_name) {
     errors.value.receiper_name = "Tên nhà cung cấp là bắt buộc.";
     return;
@@ -350,24 +394,42 @@ const createReceipt = async () => {
     return;
   }
 
-  newReceipt.value.items = addedItems.value;
+  // Tạo FormData để gửi toàn bộ dữ liệu phiếu nhập
+  const formData = new FormData();
+  formData.append("user_id", newReceipt.value.user_id);
+  formData.append("receiper_name", newReceipt.value.receiper_name);
 
-  console.log(newReceipt.value);
+  addedItems.value.forEach((item, index) => {
+    formData.append(`items[${index}][item_type]`, item.item_type);
+    formData.append(`items[${index}][item_name]`, item.item_name);
+    formData.append(`items[${index}][serial_number]`, item.serial_number);
+    formData.append(`items[${index}][quantity]`, item.quantity);
+    formData.append(`items[${index}][price]`, item.price);
 
-  const response = await importReceiptService.createReceipt(newReceipt.value);
-  if (response.status == 201) {
-    showNotification({
-      title: "Thông báo",
-      message: "Tạo phiếu nhập thành công",
-      type: "success",
-    });
-    router.push(`/receipt/${response.data.receipt_id}`);
-  } else {
-    showNotification({
-      title: "Thông báo",
-      message: "Có lỗi khi tạo phiếu nhập hàng",
-      type: "error",
-    });
+    // Chỉ đính kèm file ảnh nếu là sản phẩm mới và có ảnh
+    if (!isExistingProduct.value && item.imageFile) {
+      formData.append(`items[${index}][image]`, item.imageFile);
+    }
+  });
+
+  try {
+    const response = await importReceiptService.createReceipt(formData);
+    if (response.status === 201) {
+      showNotification({
+        title: "Thông báo",
+        message: "Tạo phiếu nhập thành công",
+        type: "success",
+      });
+      router.push(`/receipt/${response.data.receipt_id}`);
+    } else {
+      showNotification({
+        title: "Thông báo",
+        message: "Có lỗi khi tạo phiếu nhập hàng",
+        type: "error",
+      });
+    }
+  } catch (error) {
+    console.error("Error creating receipt:", error);
   }
 
   cleanErrors();
@@ -431,13 +493,19 @@ const loadReceiptData = async () => {
   }
 };
 
+const getFullImageUrl = (url) => {
+  const prefix = "http://127.0.0.1:8000/storage/";
+  
+  return url && !url.startsWith("data:") && !url.startsWith(prefix) ? `${prefix}${url}` : url;
+};
+
+
 onMounted(async () => {
   if (isEditMode.value) {
     await loadReceiptData();
   }
 });
 
-// Theo dõi sự thay đổi của route.params.id
 watch(
   () => route.params.id,
   async (newId) => {
@@ -463,5 +531,18 @@ watch(
     width: 100%;
     margin-bottom: 3px;
   }
+}
+
+.img-thumbnail {
+  width: 20%;
+  height: auto;
+  border-radius: 5px;
+  margin-top: 5px;
+}
+
+.table thead th,
+.table tbody td {
+  /* text-align: center; Căn giữa theo chiều ngang */
+  vertical-align: middle; /* Căn giữa theo chiều dọc */
 }
 </style>
