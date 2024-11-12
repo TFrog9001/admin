@@ -6,6 +6,8 @@ import Cookies from 'js-cookie';
 
 window.Pusher = Pusher;
 
+const baseURL = `${import.meta.env.VITE_BASE_URL}/broadcasting/auth`;
+
 const echo = new Echo({
     broadcaster: "pusher",
     key: import.meta.env.VITE_PUSHER_APP_KEY,
@@ -14,7 +16,7 @@ const echo = new Echo({
     wsPort: 6001,
     forceTLS: false,
     disableStats: true,
-    authEndpoint: "http://172.16.7.133:8000/broadcasting/auth",
+    authEndpoint: baseURL,
     auth: {
         headers: {
             Authorization: `Bearer ${Cookies.get('token')}`,

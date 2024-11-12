@@ -27,7 +27,22 @@
       </thead>
       <tbody>
         <tr v-for="item in addedItems" :key="item.id">
-          <td>{{ item.supply.name }}</td>
+          <td>
+            <div
+              class="d-flex justify-content-between align-items-center"
+              style="height: 100%"
+            >
+              <span class="text-start">{{ item.supply.name }}</span>
+              <img
+                v-if="item.supply.image"
+                :src="`http://127.0.0.1:8000/storage/${item.supply.image}`"
+                alt="Product Image"
+                width="50"
+                height="50"
+                class="ms-2"
+              />
+            </div>
+          </td>
           <td>
             <input
               type="number"
@@ -57,7 +72,7 @@
 
     <div class="my-2" v-if="props.bill.status == 'Chưa thanh toán'">
       <div></div>
-      <h4>Thanh toán: {{ formatCurrency(billTotalAmount) }} VND</h4>
+      <h4>Thanh toán: {{ formatCurrency(props.totalAmountDue) }} VND</h4>
       <v-radio-group v-model="paymentMethod">
         <v-radio label="Tiền mặt" value="cash"></v-radio>
         <v-radio label="ZaloPay" value="zalopay">
@@ -116,7 +131,10 @@
                 md="6"
               >
                 <v-card>
-                  <v-img :src="item.image" height="150px"></v-img>
+                  <v-img
+                    :src="`http://127.0.0.1:8000/storage/${item.image}`"
+                    height="150px"
+                  ></v-img>
                   <v-card-title>{{ item.name }}</v-card-title>
                   <v-card-subtitle>
                     Giá: {{ formatCurrency(item.price) }} VND<br />
@@ -176,7 +194,22 @@
               </thead>
               <tbody>
                 <tr v-for="item in tempItems" :key="item.id">
-                  <td>{{ item.name }}</td>
+                  <td>
+                    <div
+                      class="d-flex justify-content-between align-items-center"
+                      style="height: 100%"
+                    >
+                      <span class="text-start">{{ item.name }}</span>
+                      <img
+                        v-if="item.image"
+                        :src="`http://127.0.0.1:8000/storage/${item.image}`"
+                        alt="Product Image"
+                        width="50"
+                        height="50"
+                        class="ms-2"
+                      />
+                    </div>
+                  </td>
                   <td>{{ item.quantity }}</td>
                   <td>{{ formatCurrency(item.price) }} VND</td>
                   <td>{{ formatCurrency(item.total) }} VND</td>
@@ -248,6 +281,10 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  totalAmountDue: {
+    type: Number,
+    required: true,
+  },
 });
 
 const emit = defineEmits(["paymentSuccess"]);
@@ -260,6 +297,7 @@ const tempItems = ref([]);
 const addedItems = ref([]);
 const paymentMethod = ref("cash");
 const billTotalAmount = ref(props.bill.total_amount);
+const billTotal = ref(0);
 
 const deleteDialog = ref(false);
 const itemToDelete = ref(null);
@@ -401,7 +439,6 @@ const confirmItems = async () => {
       return total + item.quantity * item.price;
     }, 0);
 
-    // Cộng dồn vào tổng tiền hiện tại và làm tròn để loại bỏ sai số thập phân
     billTotalAmount.value = Math.round(
       billTotalAmount.value + additionalAmount
     );
@@ -487,11 +524,11 @@ const processPayment = async () => {
         const timer = setInterval(() => {
           if (popup.closed) {
             clearInterval(timer);
-            showNotification({
-              title: "Thông báo",
-              message: "Thanh toán hóa đơn thành công",
-              type: "success",
-            });
+            // showNotification({
+            //   title: "Thông báo",
+            //   message: "Thanh toán hóa đơn thành công",
+            //   type: "success",
+            // });
             emit("paymentSuccess");
           }
         }, 500);
@@ -537,6 +574,8 @@ onMounted(() => {
   addedItems.value = props.bill.supplies;
   console.log(props.bill.supplies);
   console.log(props.bill);
+  console.log(props.booking);
+  
 });
 </script>
 
