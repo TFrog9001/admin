@@ -49,7 +49,7 @@
             <p>
               <strong>Tiền đã cọc:</strong>
               <span class="status-cancelled currency-amount">{{
-                '- '+formatCurrency(booking.deposit)
+                "- " + formatCurrency(booking.deposit)
               }}</span>
             </p>
             <p>

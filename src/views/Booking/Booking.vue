@@ -837,6 +837,16 @@ const getLocalDate = (date) => {
 };
 
 // Handle booking submission
+const openPopupCentered = (url, title, width = 500, height = 600) => {
+  const left = window.screenX + (window.innerWidth - width) / 2;
+  const top = window.screenY + (window.innerHeight - height) / 2;
+  return window.open(
+    url,
+    title,
+    `width=${width},height=${height},top=${top},left=${left}`
+  );
+};
+
 const handleBooking = async () => {
   if (selectedSlot.value) {
     const bookingData = {
@@ -857,37 +867,31 @@ const handleBooking = async () => {
       })),
     };
 
-    console.log(bookingData);
-    
     if (bookingDetails.value.paymentType === "zalopay") {
       try {
-        console.log(bookingData);
         const zaloPayResult = await paymentService.createZalopay(bookingData);
         const qr_url = zaloPayResult.data.zalopay.order_url;
+        const popup = openPopupCentered(qr_url, "ZaloPay Payment");
 
-        const popup = window.open(qr_url, "_blank", "width=500,height=600");
-
-        // Check if the popup was successfully created
         if (popup) {
           const timer = setInterval(() => {
             if (popup.closed) {
               clearInterval(timer);
-              // Continue with the next steps after the window is closed
               fetchBookings();
               isDialogOpen.value = false;
-
               showNotification({
                 title: "Thông báo",
                 message: "Đã tạo booking thành công",
                 type: "success",
               });
             }
-          }, 500); // Check every 500ms
+          }, 500);
         } else {
           console.error("Popup was blocked or failed to open.");
         }
       } catch (error) {
-        errorMessage.value = error.response.data.message;
+        errorMessage.value =
+          error.response?.data?.message || "Đã xảy ra lỗi với ZaloPay.";
         console.error("Error creating ZaloPay payment:", error);
       }
     } else {
@@ -901,12 +905,8 @@ const handleBooking = async () => {
           type: "success",
         });
       } catch (error) {
-        errorMessage.value = error.response.data.message;
-        // showNotification({
-        //   title: "Thông báo",
-        //   message: error.response.data.message,
-        //   type: "success",
-        // });
+        errorMessage.value =
+          error.response?.data?.message || "Đã xảy ra lỗi khi tạo booking.";
         console.error("Error creating booking:", error);
       }
     }

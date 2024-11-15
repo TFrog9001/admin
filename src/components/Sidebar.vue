@@ -11,9 +11,9 @@
       prepend-avatar="https://cdn3.iconfinder.com/data/icons/business-avatar-1/512/3_avatar-512.png"
       nav
     >
-      <v-list-item-title class="text-h6">{{
-        authStoreMenu.user?.name || "User"
-      }}</v-list-item-title>
+      <v-list-item-title class="text-h6">
+        {{ authStoreMenu.user?.name || "User" }}
+      </v-list-item-title>
       <template v-slot:append>
         <v-btn
           icon="mdi-chevron-left"
@@ -102,20 +102,58 @@
   <v-app-bar>
     <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
     <v-app-bar-title></v-app-bar-title>
-    <!-- <template v-if="$vuetify.display.mdAndUp">
-      <v-btn icon="mdi-magnify" variant="text"></v-btn>
-      <v-btn icon="mdi-filter" variant="text"></v-btn>
-    </template> -->
+    <template v-if="$vuetify.display.mdAndUp">
+      <v-menu>
+        <template v-slot:activator="{ props }">
+          <v-btn icon="mdi-bell" v-bind="props">
+            <v-badge
+              :content="notificationStore.notifications.length"
+              color="red"
+              overlap
+            >
+              <v-icon>mdi-bell</v-icon>
+            </v-badge>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item
+            v-for="(notification, index) in notificationStore.notifications"
+            :key="index"
+          >
+            <v-list-item-title>{{ notification.message }}</v-list-item-title>
+            <v-list-item-subtitle>
+              {{ new Date(notification.timestamp).toLocaleString() }}
+            </v-list-item-subtitle>
+            <v-btn
+              icon="mdi-close"
+              @click="notificationStore.removeNotification(index)"
+            ></v-btn>
+          </v-list-item>
+          <v-divider></v-divider>
+          <v-list-item>
+            <v-btn
+              block
+              color="red"
+              @click="notificationStore.clearNotifications"
+            >
+              Xóa tất cả
+            </v-btn>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+    </template>
   </v-app-bar>
 </template>
 
 <script setup>
-import { ref, watch } from "vue";
+import { ref, watch, onMounted, getCurrentInstance } from "vue";
 import { useDisplay } from "vuetify";
 import { useAuthStore } from "../stores/auth";
+import { useNotificationStore } from "../stores/notification";
 import { useRouter } from "vue-router";
 
 const authStoreMenu = useAuthStore();
+const notificationStore = useNotificationStore(); // Import notification store
 const router = useRouter();
 
 const handleLogout = () => {
@@ -131,6 +169,48 @@ const rail = ref(false);
 watch(smAndDown, (newValue) => {
   drawer.value = !newValue;
   rail.value = false;
+});
+
+// WebSocket lắng nghe sự kiện và thêm thông báo
+function listenForNotifications() {
+  const instance = getCurrentInstance();
+  if (!instance) {
+    console.error("Vue instance is not available.");
+    return;
+  }
+
+  const echo = instance.proxy.$echo;
+  if (!echo) {
+    console.error("WebSocket connection ($echo) is not initialized.");
+    return;
+  }
+
+  // Lắng nghe kênh thông báo `staff-notifications`
+  echo.channel("staff-notifications").listen("NotificationSent", (event) => {
+    // Log sự kiện khi nhận được
+    console.log("Event received:", event);
+
+    // Giải mã dữ liệu (nếu cần)
+    try {
+      const eventData = JSON.parse(event.data);
+      console.log("Parsed event data:", eventData);
+    } catch (error) {
+      console.error("Failed to parse event data:", error);
+    }
+  });
+}
+
+onMounted(() => {
+  const instance = getCurrentInstance();
+  const echo = instance.proxy.$echo;
+  echo.channel("staff-notifications").listen(".NotificationSent", (event) => {
+    console.log("Received event:", event.message);
+
+    notificationStore.addNotification({
+      message: event.message,
+      timestamp: new Date(),
+    });
+  });
 });
 </script>
 

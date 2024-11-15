@@ -314,16 +314,32 @@ const handleImageUpload = (event) => {
 };
 
 const addItem = async () => {
+
+  // Xóa lỗi trước khi kiểm tra
   cleanErrors();
 
+  // Kiểm tra nếu sản phẩm đã có trong danh sách
+  const existingItem = addedItems.value.find(
+    (item) =>
+      item.serial_number === newItem.value.serial_number &&
+      item.item_type === newItem.value.item_type
+  );
+
+  if (existingItem) {
+    newItem.value.item_name = existingItem.item_name;
+  }
+
+  // Kiểm tra Serial Number
   if (!newItem.value.serial_number) {
     errors.value.serial_number = "Serial number là bắt buộc.";
   }
 
+  // Kiểm tra giá
   if (newItem.value.price === null || newItem.value.price <= 0) {
     errors.value.price = "Giá nhập phải lớn hơn 0.";
   }
 
+  // Kiểm tra tồn tại của sản phẩm
   try {
     let response;
     if (newItem.value.item_type === "supply") {
@@ -334,46 +350,52 @@ const addItem = async () => {
       );
     }
 
-    if (response && response.data && response.data != []) {
+    // Nếu sản phẩm tồn tại trong hệ thống, lấy dữ liệu
+    if (response && response.data) {
       newItem.value.item_name = response.data[0].name;
-
       newItem.value.image = `http://127.0.0.1:8000/storage/${
         response.data[0].image || ""
       }`;
       isExistingProduct.value = true;
     } else {
+      // Nếu không có sản phẩm trong hệ thống
       isExistingProduct.value = false;
-      newItem.value.image = null; // Xóa ảnh nếu sản phẩm là mới
+      newItem.value.image = null;
     }
-  } catch (error) {}
+  } catch (error) {
+   
+  }
 
+  // Kiểm tra tên sản phẩm sau khi tìm kiếm
   if (!newItem.value.item_name) {
     errors.value.item_name = "Tên sản phẩm là bắt buộc.";
   }
 
+  // Nếu có lỗi, ngừng thực thi hàm
   if (
-    !newItem.value.item_name ||
-    !newItem.value.serial_number ||
+    errors.value.serial_number ||
+    errors.value.item_name ||
     errors.value.price
   ) {
     return;
   }
 
-  const existingItem = addedItems.value.find(
-    (item) =>
-      item.serial_number === newItem.value.serial_number &&
-      item.item_type === newItem.value.item_type
-  );
+  
 
+  // Nếu đã có trong danh sách, tăng số lượng
   if (existingItem) {
     existingItem.quantity += newItem.value.quantity;
   } else {
+    // Thêm sản phẩm mới vào danh sách
     addedItems.value.push({ ...newItem.value });
   }
 
+  // Cập nhật tổng tiền
   calculateTotalAmount();
 
+  // Reset thông tin sản phẩm mới
   newItem.value.serial_number = "";
+  newItem.value.item_name = "";
   newItem.value.image = null;
   newItem.value.imageFile = null;
   isExistingProduct.value = false;
@@ -495,10 +517,11 @@ const loadReceiptData = async () => {
 
 const getFullImageUrl = (url) => {
   const prefix = "http://127.0.0.1:8000/storage/";
-  
-  return url && !url.startsWith("data:") && !url.startsWith(prefix) ? `${prefix}${url}` : url;
-};
 
+  return url && !url.startsWith("data:") && !url.startsWith(prefix)
+    ? `${prefix}${url}`
+    : url;
+};
 
 onMounted(async () => {
   if (isEditMode.value) {
