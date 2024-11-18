@@ -7,7 +7,7 @@
         <v-date-input
           class="date-picker"
           v-model="selectedDate"
-          label="Select Date"
+          label="Chọn ngày"
           prepend-icon="mdi-calendar"
           clearable
           variant="outlined"
@@ -17,7 +17,7 @@
         <v-select
           v-model="selectedField"
           :items="fieldOptions"
-          label="Select Field"
+          label="Chọn sân"
           item-title="name"
           item-value="id"
           variant="outlined"
@@ -30,7 +30,7 @@
           :items="bookingTypes"
           item-title="title"
           item-value="value"
-          label="Chọn loại booking"
+          label="Chọn loại trạng thái"
           variant="outlined"
         ></v-select>
       </v-col>
@@ -38,13 +38,13 @@
     <v-row>
       <v-col cols="12" class="d-flex justify-space-between">
         <v-btn @click="selectedField ? previousWeek() : previousDay()">
-          {{ selectedField ? "Previous Week" : "Previous Day" }}
+          {{ selectedField ? "Tuần trước" : "Ngày trước" }}
         </v-btn>
         <v-btn @click="setToday">
-          {{ selectedField ? "This Week" : "Today" }}
+          {{ selectedField ? "Tuần này" : "Hôme nay" }}
         </v-btn>
         <v-btn @click="selectedField ? nextWeek() : nextDay()">
-          {{ selectedField ? "Next Week" : "Next Day" }}
+          {{ selectedField ? "Tuần tới" : "Ngày mai" }}
         </v-btn>
       </v-col>
     </v-row>
@@ -530,8 +530,8 @@ const selectedDateForm = ref(new Date());
 const selectedField = ref(null);
 const errorMessage = ref("");
 const bookingTypes = ref([
-  { title: "All", value: "all" },
-  { title: "Failed Booking", value: "failed" },
+  { title: "Tất cả", value: "all" },
+  { title: "Bị hủy", value: "failed" },
 ]);
 
 const selectedBookingType = ref("all");
@@ -941,7 +941,7 @@ const getBookingHeight = (fieldId, index, date) => {
 
 // Computed field options
 const fieldOptions = computed(() => {
-  return [{ id: null, name: "All Fields" }, ...fields.value];
+  return [{ id: null, name: "Tất cả các sân" }, ...fields.value];
 });
 
 // Filtered fields
