@@ -2,9 +2,9 @@ import api from "../axios/api";
 
 const bookingService = {
     async getBookings(booking_date, status) {
-        try {  
+        try {
             const response = await api.get('/bookings', {
-                params: { booking_date , status: status ?? 'nofail'} 
+                params: { booking_date, status: status ?? 'nofail' }
             });
             return response;
         } catch (error) {
@@ -13,7 +13,7 @@ const bookingService = {
         }
     },
     async getAllBookings() {
-        try {  
+        try {
             const response = await api.get('/bookings');
             return response;
         } catch (error) {
@@ -22,9 +22,9 @@ const bookingService = {
         }
     },
     async getFailBookings(booking_date) {
-        try {  
+        try {
             const response = await api.get('/bookings/fail', {
-                params: { booking_date} 
+                params: { booking_date }
             });
             return response;
         } catch (error) {
@@ -33,7 +33,7 @@ const bookingService = {
         }
     },
     async getBookingById(id) {
-        try {  
+        try {
             const response = await api.get(`/bookings/${id}`);
             return response;
         } catch (error) {
@@ -47,6 +47,16 @@ const bookingService = {
             return response;
         } catch (error) {
             console.error('Có lỗi xảy ra khi tạo booking', error);
+            throw error;
+        }
+    },
+
+    async cancelBooking(id) {
+        try {
+            const response = await api.post(`/bookings/${id}/cancel`);
+            return response;
+        } catch (error) {
+            console.error('Có lỗi xảy ra hủy booking:', error);
             throw error;
         }
     },
