@@ -34,7 +34,7 @@
       ></v-list-item>
       <v-divider inset></v-divider>
       <v-list-item
-        prepend-icon="mdi-cancel"
+        prepend-icon="mdi-shield-account-outline"
         title="Vai trò & Quyền"
         value="roles"
         :to="{ name: 'Roles' }"
