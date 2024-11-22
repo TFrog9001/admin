@@ -61,6 +61,7 @@ const renderChart = () => {
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
           legend: {
             display: true,
@@ -122,6 +123,6 @@ onUnmounted(() => {
 <style scoped>
 canvas {
   max-width: 100%;
-  height: auto;
+  height: 258px;
 }
 </style>

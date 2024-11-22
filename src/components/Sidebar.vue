@@ -34,6 +34,18 @@
       ></v-list-item>
       <v-divider inset></v-divider>
       <v-list-item
+        prepend-icon="mdi-cancel"
+        title="Vai trò & Quyền"
+        value="roles"
+        :to="{ name: 'Roles' }"
+      ></v-list-item>
+      <v-list-item
+        prepend-icon="mdi-account-tie"
+        title="Nhân viên"
+        value="staff"
+        :to="{ name: 'Staff' }"
+      ></v-list-item>
+      <v-list-item
         prepend-icon="mdi-account-group-outline"
         title="Người dùng"
         value="users"

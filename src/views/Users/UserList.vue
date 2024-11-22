@@ -22,6 +22,15 @@
         <template #id="data">
           <strong>#{{ data.value.id }}</strong>
         </template>
+        <template #userInfo="data">
+          {{ data.value.name}}
+          <v-icon
+            class="me-3"
+            v-if="data.value.vip === '1'"
+            color="amber lighten-1"
+            icon="mdi-star"
+          ></v-icon>
+        </template>
         <template #actions="data">
           <div class="flex gap-4">
             <v-icon color="success" @click="openDialog(data.value)">
@@ -98,7 +107,8 @@ const loading = ref(true);
 const rows = ref([]);
 const cols = ref([
   { field: "id", title: "ID", type: "number", width: "10%" },
-  { field: "name", title: "Tên", width: "30%" },
+  { field: "userInfo", title: "Người đặt", type: "string" },
+  // { field: "name", title: "Tên", width: "30%" },
   { field: "email", title: "Email", width: "30%" },
   { field: "phone", title: "Số điện thoại", width: "20%" },
   {
@@ -123,7 +133,7 @@ const editedUser = ref({
 const getUsers = async () => {
   try {
     loading.value = true;
-    const response = await userService.getCustomers();
+    const response = await userService.getCustomers();  
     console.log(response);
 
     rows.value = response.data.users;

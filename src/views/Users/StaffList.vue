@@ -1,0 +1,1 @@
+<template>Staff list</template>

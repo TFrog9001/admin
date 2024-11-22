@@ -7,16 +7,18 @@ import UserList from '../views/Users/UserList.vue';
 import Fields from '../views/Fileds/Fields.vue';
 import Test from '../views/Test.vue';
 import FieldDetail from '../views/Fileds/FieldDetail.vue';
-import Calendar from '../components/Calendar.vue';
 import Booking from '../views/Booking/Booking.vue';
 import BookingDetail from '../views/Booking/BookingDetail.vue';
 import Supply from '../views/Supply/Supply.vue';
 import Receipt from '../views/Receipt/Receipt.vue';
 import ReceiptDetail from '../views/Receipt/ReceiptDetail.vue';
-import ReceiptCreate from '../views/Receipt/ReceiptCreate.vue';
 import Equipment from '../views/Equipment/Equipment.vue';
 import History from '../views/Booking/History.vue';
 import Services from '../views/Service/Services.vue';
+import MonthDetail from '../views/Dashboard/MonthDetail.vue';
+
+import StaffList from '../views/Users/StaffList.vue';
+import Roles from '../views/Roles/roles.vue';
 
 const routes = [
     {
@@ -35,6 +37,24 @@ const routes = [
         path: '/dashboard',
         name: 'Admin',
         component: Admin,
+        meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
+        path: '/dashboard/details',
+        name: 'MonthDetail',
+        component: MonthDetail,
+        meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
+        path: '/staff',
+        name: 'Staff',
+        component: StaffList,
+        meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
+        path: '/roles',
+        name: 'Roles',
+        component: Roles,
         meta: { requiresAuth: true, requiresAdmin: true },
     },
     {
