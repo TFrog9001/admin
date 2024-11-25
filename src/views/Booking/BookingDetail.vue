@@ -176,7 +176,7 @@
                 <td>
                   <v-avatar
                     :image="
-                      service.staff.avatar ||
+                      getStaffAvatar(service.staff.avatar) ||
                       'https://cdn3.iconfinder.com/data/icons/business-avatar-1/512/3_avatar-512.png'
                     "
                   ></v-avatar>
@@ -318,12 +318,24 @@ const startRealTimeCheck = () => {
 
 // Tính tổng phí dịch vụ
 const serviceFees = computed(() => {
-  if (!booking.value || !booking.value.bill || !booking.value.bill.services)
+  if (!booking.value || !booking.value.bill || !booking.value.bill.services) {
     return 0;
-  return booking.value.bill.services.reduce(
-    (total, service) => total + parseFloat(service.fee),
-    0
+  }
+
+  // Tính thời lượng trận đấu (giờ)
+  const startTime = new Date(
+    `${booking.value.booking_date}T${booking.value.start_time}`
   );
+  const endTime = new Date(
+    `${booking.value.booking_date}T${booking.value.end_time}`
+  );
+  const durationInHours = (endTime - startTime) / (1000 * 60 * 60); // chuyển đổi ms -> giờ
+
+  // Tính phí dịch vụ dựa trên thời lượng
+  return booking.value.bill.services.reduce((total, service) => {
+    const serviceFee = parseFloat(service.fee) * durationInHours;
+    return total + serviceFee;
+  }, 0);
 });
 
 // Tính tổng phí tiện ích
@@ -473,6 +485,17 @@ onMounted(() => {
   setInterval(calculateProgress, 60000);
   startRealTimeCheck();
 });
+
+
+const getStaffAvatar = (avatar) => {
+  if (avatar && avatar.startsWith("avatars")) {
+    return `http://127.0.0.1:8000/storage/${avatar}`;
+  }
+  return (
+    avatar ||
+    "https://cdn3.iconfinder.com/data/icons/business-avatar-1/512/3_avatar-512.png"
+  );
+};
 </script>
 
 <style scoped>

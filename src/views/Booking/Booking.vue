@@ -404,10 +404,7 @@
             <v-row class="my-3" v-for="service in selectedServices">
               <v-col cols="1" class="mr-3">
                 <v-avatar
-                  :image="
-                    service.staffAvatar ||
-                    'https://cdn3.iconfinder.com/data/icons/business-avatar-1/512/3_avatar-512.png'
-                  "
+                  :image="getStaffAvatar(service.staffAvatar)"
                 ></v-avatar>
               </v-col>
               <v-col>
@@ -1058,6 +1055,16 @@ onMounted(() => {
   fetchBookings();
   fetchServices();
 });
+
+const getStaffAvatar = (avatar) => {
+  if (avatar && avatar.startsWith("avatars")) {
+    return `http://127.0.0.1:8000/storage/${avatar}`;
+  }
+  return (
+    avatar ||
+    "https://cdn3.iconfinder.com/data/icons/business-avatar-1/512/3_avatar-512.png"
+  );
+};
 </script>
 
 <style scoped>

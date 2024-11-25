@@ -113,7 +113,7 @@
             <!-- Chọn vai trò -->
             <v-select
               prepend-inner-icon="mdi-shield-account-outline"
-              v-model="editedStaff.role"
+              v-model="editedStaff.role.id"
               :items="roles"
               item-title="role_name"
               item-value="id"
@@ -238,7 +238,7 @@ const getStaffs = async () => {
 
 const openDialog = (staff = null) => {
   if (staff) {
-    editedStaff.value = { ...staff, avatar: null }; // Đặt avatar = null để không ghi đè ảnh hiện tại
+    editedStaff.value = { ...staff, avatar: null };
   } else {
     editedStaff.value = {
       id: null,
@@ -262,7 +262,7 @@ const saveStaff = async () => {
     formData.append("phone", editedStaff.value.phone);
     formData.append("password", editedStaff.value.password);
     formData.append("password_confirmation", editedStaff.value.confirmPassword);
-    formData.append("role", editedStaff.value.role);
+    formData.append("role", editedStaff.value.role.id);
 
     if (editedStaff.value.avatar) {
       formData.append("avatar", editedStaff.value.avatar);
