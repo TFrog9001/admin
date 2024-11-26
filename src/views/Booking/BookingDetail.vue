@@ -79,7 +79,15 @@
               </span>
             </p>
 
-            <p v-if="canCancel && booking.status !== 'Hủy'" class="mt-4">
+            <p
+              v-if="
+                canCancel &&
+                booking.status !== 'Hủy' &&
+                booking.status !== 'Hoàn tiền' &&
+                booking.status !== 'Đã hoàn tiền'
+              "
+              class="mt-4"
+            >
               <span>
                 <v-btn style="width: 270px" color="red" @click="handleCancel">
                   Hủy đặt sân
@@ -175,10 +183,7 @@
                 <td>{{ service.service.description }}</td>
                 <td>
                   <v-avatar
-                    :image="
-                      getStaffAvatar(service.staff.avatar) ||
-                      'https://cdn3.iconfinder.com/data/icons/business-avatar-1/512/3_avatar-512.png'
-                    "
+                    :image="getStaffAvatar(service.staff.avatar)"
                   ></v-avatar>
                   {{ service.staff.name }}
                 </td>
@@ -201,6 +206,21 @@
         />
       </v-col>
     </v-row>
+
+    <v-divider></v-divider>
+    <div
+      v-if="booking?.bill && booking?.bill?.status == 'Đã thanh toán'"
+      class="comment-box"
+    >
+      <div class="m-2">
+        <h3>Bình luận</h3>
+      </div>
+      <div>
+        <div>
+          <Comment :bookingId="bookingId" />
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -210,6 +230,7 @@ import { useRoute } from "vue-router";
 import chatService from "../../services/chatService";
 import bookingService from "../../services/bookingService";
 
+import Comment from "../../components/Comment.vue";
 import SupplyTable from "./SupplyTable.vue";
 
 const route = useRoute();
@@ -485,7 +506,6 @@ onMounted(() => {
   setInterval(calculateProgress, 60000);
   startRealTimeCheck();
 });
-
 
 const getStaffAvatar = (avatar) => {
   if (avatar && avatar.startsWith("avatars")) {
