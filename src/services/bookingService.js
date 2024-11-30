@@ -60,6 +60,15 @@ const bookingService = {
             throw error;
         }
     },
+    async deleteBooking(id) {
+        try {
+            const response = await api.delete(`/bookings/${id}`);
+            return response;
+        } catch (error) {
+            console.error('Có lỗi xảy ra khi xóa booking:', error);
+            throw error;
+        }
+    }
 }
 
 export default bookingService;

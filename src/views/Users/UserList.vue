@@ -128,6 +128,7 @@ const editedUser = ref({
   phone: "",
   password: "",
   confirmPassword: "",
+  role: 3
 });
 
 const getUsers = async () => {
@@ -155,6 +156,7 @@ const openDialog = (user = null) => {
       phone: "",
       password: "",
       confirmPassword: "",
+      role: 3
     };
   }
   dialog.value = true;
@@ -162,7 +164,7 @@ const openDialog = (user = null) => {
 
 const saveUser = async () => {
   if (editedUser.value.id) {
-    await userService.updateUser(editedUser.value.id, editedUser.value);
+    await userService.editUser( editedUser.value,editedUser.value.id);
   } else {
     await userService.createUser(editedUser.value);
   }

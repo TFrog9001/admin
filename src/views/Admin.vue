@@ -15,7 +15,7 @@
         <div class="stat-box p-3 text-center shadow-sm">
           <p class="fw-bold">Doanh Thu</p>
           <h2 class="text-primary">
-            {{ formatCurrency(statistics.total_revenue || 0) }}
+            {{ formatCurrency(totalRevenue || 0) }}
           </h2>
         </div>
       </div>
@@ -84,7 +84,7 @@
       <div class="col-md-12">
         <div class="card p-3 shadow-sm">
           <h5 class="text-center">Biểu Đồ Doanh Thu</h5>
-          <RevenueChart />
+          <RevenueChart @update:totalRevenue="handleTotalRevenueUpdate" />
         </div>
       </div>
     </div>
@@ -96,6 +96,13 @@ import { ref, onMounted } from "vue";
 import axios from "axios";
 import LineChart from "../components/LineChart.vue";
 import RevenueChart from "../components/RevenueChart.vue";
+
+const totalRevenue = ref(0); // Dữ liệu tổng doanh thu
+
+// Lắng nghe sự kiện 'update:totalRevenue' từ RevenueChart
+const handleTotalRevenueUpdate = (newTotalRevenue) => {
+  totalRevenue.value = newTotalRevenue; // Cập nhật tổng doanh thu
+};
 
 // Component
 const statistics = ref({

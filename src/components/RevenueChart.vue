@@ -20,6 +20,8 @@ import revenueService from "../services/revenueService";
 import { useRouter } from "vue-router";
 const router = useRouter();
 
+const emit = defineEmits();
+
 // Danh sách năm từ 2022 đến năm hiện tại
 const currentYear = new Date().getFullYear();
 const availableYears = Array.from(
@@ -38,6 +40,12 @@ const fetchAndRenderChart = async (year) => {
     console.log(response);
 
     const monthlyData = response.monthly_revenue;
+
+    const totalRevenue = monthlyData.reduce((total, item) => {
+      return total + parseFloat(item.total_revenue);
+    }, 0);
+
+    emit('update:totalRevenue', totalRevenue); 
 
     // Chuẩn bị dữ liệu cho biểu đồ
     const labels = monthlyData.map((item) => `Tháng ${item.month}`);
