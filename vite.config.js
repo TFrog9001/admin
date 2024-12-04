@@ -29,11 +29,11 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
         },
         "/api/zalopay/callback": {
-          target: "https://mlatbooking.serveo.net",
+          target: "https://mlatbooking.loca.lt",
           changeOrigin: true,
         },
         "/api/zalopay/callbackbill": {
-          target: "https://mlatbooking.serveo.net",
+          target: "https://mlatbooking.loca.lt",
           changeOrigin: true,
         },
       },
